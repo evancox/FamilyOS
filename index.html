@@ -1066,6 +1066,7 @@
             el.style.top = ((segStart - h) * PX_PER_HOUR) + 'px';
             el.style.height = dur + 'px';
             el.textContent = b.label;
+            el.title = `${b.label}\n${format12(b.start)} – ${format12(b.end)} (locked)`;
             cell.appendChild(el);
         }
     }
@@ -1083,15 +1084,19 @@
             el.dataset.id = b.id;
             el.style.top = ((b.start - startHour) * PX_PER_HOUR) + 'px';
             el.style.height = b.duration + 'px';
+            el.title = `${b.name}\n${format12(b.start)} – ${format12(blockEnd(b))} (${b.duration}m)\nClick to edit`;
 
             const label = document.createElement('div');
             label.textContent = b.name;
-            const time = document.createElement('div');
-            time.style.fontSize = '0.85em';
-            time.style.opacity = '0.85';
-            time.textContent = format12(b.start);
+            // Hide the time row on very short blocks (< 25m) — too cramped.
             el.appendChild(label);
-            el.appendChild(time);
+            if (b.duration >= 25) {
+                const time = document.createElement('div');
+                time.style.fontSize = '0.85em';
+                time.style.opacity = '0.85';
+                time.textContent = format12(b.start);
+                el.appendChild(time);
+            }
 
             const remove = document.createElement('button');
             remove.className = 'block-remove';
@@ -1407,7 +1412,12 @@
             if (e.target.id === 'editModal') closeEditModal();
         });
         document.addEventListener('keydown', e => {
+            if (document.getElementById('editModal').hidden) return;
             if (e.key === 'Escape') closeEditModal();
+            else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                saveEditModal();
+            }
         });
 
         renderApp();
