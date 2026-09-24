@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Operating System v5.0</title>
+    <title>Family Operating System v5.1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -67,7 +67,7 @@
 
         .controls {
             display: flex; gap: 12px; align-items: center;
-            margin-bottom: 16px; flex-wrap: wrap;
+            margin-bottom: 12px; flex-wrap: wrap;
         }
         .person-chips {
             display: flex; gap: 6px; overflow-x: auto;
@@ -107,6 +107,26 @@
         .day-selector select {
             padding: 5px 8px; border: 2px solid rgba(0,0,0,0.1);
             border-radius: 8px; font-weight: 600; background: white;
+        }
+
+        /* Countdown chips: externalize time transitions for time-blindness. */
+        .countdown-strip {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .countdown-chip {
+            background: #f0f0f0;
+            padding: 6px 12px; border-radius: 20px;
+            font-size: 0.82em; font-weight: 600; color: #444;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .countdown-chip .cd-label { color: #666; }
+        .countdown-chip .cd-time { font-variant-numeric: tabular-nums; }
+        .countdown-chip.soon { background: #fff4d1; color: #7a5300; }
+        .countdown-chip.now  { background: #ffd7d1; color: #8a1a14; }
+        .countdown-chip .cd-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor; opacity: 0.5;
         }
 
         .main-layout {
@@ -206,6 +226,10 @@
             font-size: 0.72em; font-weight: 600; color: #666;
         }
         .routine-meta { font-size: 0.7em; color: #888; margin-top: 2px; }
+        .routine-card .edit-marker {
+            font-size: 0.75em; color: #999; padding-left: 6px; cursor: pointer;
+        }
+        .routine-card .edit-marker:hover { color: #16a085; }
 
         .budget-row {
             display: flex; justify-content: space-between;
@@ -288,6 +312,19 @@
             z-index: 2;
         }
 
+        /* Transition band: 10 min of visual runway before each anchor. */
+        .transition-band {
+            position: absolute;
+            left: 0; right: 0;
+            background: repeating-linear-gradient(
+                135deg,
+                rgba(230,126,34,0.10), rgba(230,126,34,0.10) 5px,
+                rgba(230,126,34,0.20) 5px, rgba(230,126,34,0.20) 10px);
+            pointer-events: none;
+            z-index: 3;
+            border-top: 1px dashed rgba(230,126,34,0.5);
+        }
+
         .key-time-line {
             position: absolute;
             left: 70px; right: 0;
@@ -298,8 +335,10 @@
         .key-time-line.wake { background: #27ae60; }
         .key-time-line.leave { background: #e67e22; }
         .key-time-line.dinner { background: #2980b9; }
+        .key-time-line.windDown { background: #d35400; }
         .key-time-line.screensOff { background: #e74c3c; }
         .key-time-line.bedtime { background: #8e44ad; }
+
         .key-time-label {
             position: absolute;
             left: 6px; top: -9px;
@@ -310,6 +349,7 @@
         .key-time-line.wake .key-time-label { background: #27ae60; }
         .key-time-line.leave .key-time-label { background: #e67e22; }
         .key-time-line.dinner .key-time-label { background: #2980b9; }
+        .key-time-line.windDown .key-time-label { background: #d35400; }
         .key-time-line.screensOff .key-time-label { background: #e74c3c; }
         .key-time-line.bedtime .key-time-label { background: #8e44ad; }
 
@@ -362,11 +402,14 @@
         .placed-block.special { background: linear-gradient(135deg, #3498db, #2980b9); }
         .placed-block.routine { background: linear-gradient(135deg, #16a085, #1abc9c); }
 
-        .placed-block .merge-count {
-            position: absolute; top: 2px; right: 20px;
+        .placed-block .merge-count,
+        .placed-block .subtask-progress {
+            position: absolute; top: 2px;
             background: rgba(255,255,255,0.35); color: white;
             font-size: 0.7em; padding: 0 5px; border-radius: 8px;
         }
+        .placed-block .merge-count { right: 20px; }
+        .placed-block .subtask-progress { right: 44px; }
 
         .block-remove {
             position: absolute;
@@ -412,7 +455,7 @@
         .modal-overlay[hidden] { display: none; }
         .modal {
             background: white; border-radius: 16px; padding: 22px;
-            width: 420px; max-width: 92vw;
+            width: 460px; max-width: 92vw;
             max-height: 90vh; overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -455,6 +498,69 @@
         }
         .swatch.selected { border-color: #333; }
 
+        /* Sub-tasks list inside edit block modal (ADHD chunking). */
+        .subtask-section {
+            border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;
+        }
+        .subtask-section > .subtask-heading {
+            font-size: 0.82em; font-weight: 600; color: #444;
+            margin-bottom: 6px;
+        }
+        .subtask-row {
+            display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+        }
+        .subtask-row input[type="text"] {
+            flex: 1; margin-top: 0; padding: 5px 8px; font-size: 0.9em;
+        }
+        .subtask-row input[type="checkbox"] { width: auto; margin: 0; }
+        .subtask-row .rm {
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 0 4px;
+        }
+        .subtask-add {
+            font-size: 0.82em; color: #667eea; cursor: pointer;
+            background: none; border: none; padding: 4px 0;
+        }
+        .subtask-add:hover { text-decoration: underline; }
+
+        /* Routine editor */
+        .routine-item-row {
+            display: grid;
+            grid-template-columns: 1fr 60px 100px 24px;
+            gap: 6px; align-items: center; margin-bottom: 4px;
+        }
+        .routine-item-row input, .routine-item-row select {
+            margin: 0; padding: 5px 8px; font-size: 0.9em;
+        }
+        .routine-item-row .rm {
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 0;
+        }
+        .routine-item-header {
+            display: grid;
+            grid-template-columns: 1fr 60px 100px 24px;
+            gap: 6px;
+            font-size: 0.72em; font-weight: 700; color: #666;
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+
+        /* First/then modal — small chooser after must-do drop. */
+        .first-then-body { font-size: 0.9em; color: #444; margin-bottom: 12px; }
+        .first-then-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            margin-bottom: 12px;
+        }
+        .first-then-grid .ft-pick {
+            background: white; border: 1px solid #ddd; border-left: 4px solid;
+            border-radius: 8px; padding: 8px 10px; cursor: pointer;
+            font-size: 0.85em; font-weight: 600; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .first-then-grid .ft-pick:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .first-then-grid .ft-pick.flexible { border-left-color: #f39c12; }
+        .first-then-grid .ft-pick.screen-time { border-left-color: #9b59b6; }
+        .first-then-grid .ft-pick.special { border-left-color: #3498db; }
+
         /* Intro overlay */
         .intro-overlay {
             position: fixed; inset: 0;
@@ -481,6 +587,7 @@
             body { background: white; padding: 0; }
             .container { box-shadow: none; padding: 0; max-width: none; }
             header, .controls, .sidebar, .action-buttons,
+            .countdown-strip,
             .modal-overlay, .intro-overlay, .block-remove { display: none !important; }
             .main-layout { grid-template-columns: 1fr; }
             .calendar-container { border: 1px solid #ccc; }
@@ -500,7 +607,7 @@
     <div class="container">
         <header>
             <div class="brand">
-                <h1>Family Operating System<span class="version">v5.0</span></h1>
+                <h1>Family Operating System<span class="version">v5.1</span></h1>
                 <p class="subtitle">A visible scaffold for the family week.</p>
             </div>
             <div class="header-actions">
@@ -521,6 +628,8 @@
                 <select id="daySelect"></select>
             </div>
         </div>
+
+        <div class="countdown-strip" id="countdownStrip"></div>
 
         <div class="main-layout">
             <div class="sidebar" id="sidebar">
@@ -549,7 +658,10 @@
                 </div>
 
                 <div class="panel" id="routinesPanel">
-                    <h3>Routines</h3>
+                    <h3>
+                        Routines
+                        <button class="h3-action" id="addRoutineBtn">+ Add</button>
+                    </h3>
                     <div id="routineBank"></div>
                 </div>
 
@@ -574,7 +686,7 @@
         </div>
     </div>
 
-    <!-- Edit user block modal -->
+    <!-- Edit user block modal (with sub-tasks) -->
     <div class="modal-overlay" id="editModal" hidden>
         <div class="modal">
             <h3 id="editModalTitle">Edit block</h3>
@@ -582,6 +694,11 @@
             <label>Start time<input type="time" id="editStart"></label>
             <label>Duration (minutes)<input type="number" id="editDuration" min="5" step="5"></label>
             <label>Day<select id="editDay"></select></label>
+            <div class="subtask-section">
+                <div class="subtask-heading">Steps (optional)</div>
+                <div id="editSubTasks"></div>
+                <button class="subtask-add" id="addSubTaskBtn">+ Add step</button>
+            </div>
             <div class="modal-buttons">
                 <button class="btn btn-danger" id="modalDeleteBtn">Remove</button>
                 <button class="btn" id="modalCancelBtn">Cancel</button>
@@ -642,6 +759,39 @@
         </div>
     </div>
 
+    <!-- Routine edit modal -->
+    <div class="modal-overlay" id="routineModal" hidden>
+        <div class="modal">
+            <h3 id="routineModalTitle">Routine</h3>
+            <label>Name<input type="text" id="routineName" placeholder="Morning, Bedtime, Homework flow…"></label>
+            <div class="subtask-section">
+                <div class="subtask-heading">Steps</div>
+                <div class="routine-item-header">
+                    <div>Name</div><div>Mins</div><div>Type</div><div></div>
+                </div>
+                <div id="routineItems"></div>
+                <button class="subtask-add" id="addRoutineStepBtn">+ Add step</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="routineDeleteBtn">Remove routine</button>
+                <button class="btn" id="routineCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="routineSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- First/Then modal — offered after a must-do drop -->
+    <div class="modal-overlay" id="firstThenModal" hidden>
+        <div class="modal">
+            <h3>Line up a "then"?</h3>
+            <div class="first-then-body" id="firstThenBody"></div>
+            <div class="first-then-grid" id="firstThenChoices"></div>
+            <div class="modal-buttons">
+                <button class="btn" id="firstThenSkipBtn">Skip</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Before-you-start intro -->
     <div class="intro-overlay" id="introOverlay" hidden>
         <div class="intro-card">
@@ -676,35 +826,35 @@
     // CONSTANTS
     // =====================================================================
 
-    const STORAGE_KEY = 'familyOS.v5';
-    const SCHEMA_VERSION = 5;
+    const STORAGE_KEY = 'familyOS.v5';   // v5 and v5.1 share storage; migration handles both.
+    const SCHEMA_VERSION = 6;             // v5.1 bumps schema (windDown, routines, subTasks).
 
     const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const DAYS_LETTER = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
     const PX_PER_HOUR = 60;
     const HEADER_PX = 40;
+    const TRANSITION_MIN = 10;           // minutes of runway before each anchor
 
     const DEFAULT_KEY_TIMES = {
-        wake: 6.5, leave: 6.83, dinner: 18.0, screensOff: 20.0, bedtime: 21.0
+        wake: 6.5, leave: 6.83, dinner: 18.0,
+        windDown: 20.0, screensOff: 20.0, bedtime: 21.0
     };
     const KEY_TIME_DEFS = [
-        { id: 'wake', label: 'Wake' },
-        { id: 'leave', label: 'Leave House' },
-        { id: 'dinner', label: 'Dinner' },
+        { id: 'wake',       label: 'Wake' },
+        { id: 'leave',      label: 'Leave House' },
+        { id: 'dinner',     label: 'Dinner' },
+        { id: 'windDown',   label: 'Wind-down' },
         { id: 'screensOff', label: 'Screens Off' },
-        { id: 'bedtime', label: 'Bedtime' }
+        { id: 'bedtime',    label: 'Bedtime' }
     ];
 
-    // Palette people can pick from. Kept small on purpose — decision fatigue
-    // is a real cost for the users this app serves.
     const PERSON_COLORS = [
         '#667eea', '#e74c3c', '#f39c12', '#27ae60',
         '#16a085', '#3498db', '#9b59b6', '#e67e22',
         '#34495e', '#e91e63'
     ];
 
-    // Activity catalog. Generic names for any family.
     const ACTIVITIES = [
         { section: 'Must-do',   type: 'must-do',     name: 'Homework',     duration: 30 },
         { section: 'Must-do',   type: 'must-do',     name: 'Reading',      duration: 20 },
@@ -718,8 +868,9 @@
         { section: 'Special',   type: 'special',     name: 'Sports',       duration: 45 }
     ];
 
-    // Bundled routines. Kept hardcoded in v5; editable routines is a v5.1 item.
-    const ROUTINES = {
+    // Default routines used to seed a new family. Once state has routines,
+    // this constant is only used for the built-in slugs' initial content.
+    const DEFAULT_ROUTINES = {
         morning: { label: 'Morning', items: [
             { name: 'Bathroom / Brush Teeth', duration: 10, type: 'must-do' },
             { name: 'Get Dressed',            duration: 10, type: 'must-do' },
@@ -738,9 +889,6 @@
         ]}
     };
 
-    // Ollie's and Emmet's known anchors — used to seed the first-run family
-    // and to migrate old v4 state into the new schema. Editable by the user
-    // once seeded; the constants here don't change once state exists.
     const SEED_OLLIE_ANCHORS = [
         { label: 'Travel',    start: 6.83,  end: 7.75,  type: 'travel',  days: [0,1,2,3,4] },
         { label: "At Mom's",  start: 7.75,  end: 8.17,  type: 'wait',    days: [0,1,2,3,4] },
@@ -761,20 +909,21 @@
     // =====================================================================
     // STATE
     // =====================================================================
-    // Single source of truth. Mutate via helpers below; each ends with
-    // saveState() + renderApp().
 
     let state = defaultState();
     let dragPayload = null;
-    let editingBlockGroup = null;   // for the merged-block edit modal
+    let editingBlockGroup = null;
+    let editingBlockSubTasks = [];       // working copy for the edit modal
     let editingPersonId = null;
     let editingAnchorId = null;
+    let editingRoutineKey = null;
+    let editingRoutineItems = [];
+    let pendingFirstThen = null;         // { day, afterTime, personId } after a must-do drop
 
     function defaultState() {
         return sampleFamilyState();
     }
 
-    // First-run sample family: Ollie + Emmet + a parent placeholder.
     function sampleFamilyState() {
         const ollie = makePerson('Ollie', 'kid', '#667eea', '🧒');
         ollie.anchors = SEED_OLLIE_ANCHORS.map(withAnchorId);
@@ -787,16 +936,23 @@
             selectedDay: 0,
             view: 'parent',
             introSeen: false,
-            people: [ollie, emmet, parent]
+            people: [ollie, emmet, parent],
+            routines: cloneRoutines(DEFAULT_ROUTINES)
         };
+    }
+
+    function cloneRoutines(src) {
+        const out = {};
+        for (const [k, r] of Object.entries(src)) {
+            out[k] = { label: r.label, items: r.items.map(i => ({ ...i })) };
+        }
+        return out;
     }
 
     function makePerson(name, role, color, emoji) {
         return {
             id: 'p_' + Math.random().toString(36).slice(2, 8),
-            name,
-            role,
-            color,
+            name, role, color,
             emoji: emoji || '',
             keyTimes: { ...DEFAULT_KEY_TIMES },
             anchors: [],
@@ -816,7 +972,6 @@
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) return migrateFromV5(JSON.parse(raw));
-            // Also try v4 payload for migration path.
             const rawV4 = localStorage.getItem('familyOS.v4');
             if (rawV4) return migrateFromV4(JSON.parse(rawV4));
             return defaultState();
@@ -831,17 +986,20 @@
         catch (err) { console.warn('FamilyOS: save failed.', err); }
     }
 
+    // v5.1: schema version 6. v5 and v5.1 share storage key; we upgrade in place.
     function migrateFromV5(raw) {
         const fresh = defaultState();
-        if (raw && raw.version === SCHEMA_VERSION && Array.isArray(raw.people)) {
-            return {
-                ...fresh,
-                ...raw,
-                people: raw.people.map(normalizePerson)
-            };
+        if (!raw || !Array.isArray(raw.people)) {
+            console.warn('FamilyOS: payload shape mismatch — using defaults.');
+            return fresh;
         }
-        console.warn('FamilyOS: v5 payload shape mismatch — using defaults.');
-        return fresh;
+        const migrated = {
+            ...fresh, ...raw,
+            people: raw.people.map(normalizePerson),
+            routines: normalizeRoutines(raw.routines)
+        };
+        migrated.version = SCHEMA_VERSION;
+        return migrated;
     }
 
     function normalizePerson(p) {
@@ -859,25 +1017,56 @@
                 type: a.type || 'other',
                 days: Array.isArray(a.days) ? a.days : [0,1,2,3,4]
             })),
-            schedule: { blocks: ((p.schedule && p.schedule.blocks) || []) }
+            schedule: {
+                blocks: (((p.schedule && p.schedule.blocks) || [])).map(normalizeBlock)
+            }
         };
     }
 
-    // Migrate a v4 payload into v5 shape. v4 was Ollie/Emmet-only with
-    // hardcoded system blocks and a shared keyTimes.
+    function normalizeBlock(b) {
+        return {
+            ...b,
+            subTasks: Array.isArray(b.subTasks)
+                ? b.subTasks.map(st => ({
+                    id: st.id || ('s_' + Math.random().toString(36).slice(2, 6)),
+                    name: st.name || '',
+                    done: !!st.done
+                }))
+                : []
+        };
+    }
+
+    function normalizeRoutines(rs) {
+        if (!rs || typeof rs !== 'object') return cloneRoutines(DEFAULT_ROUTINES);
+        const out = {};
+        for (const [k, r] of Object.entries(rs)) {
+            if (!r || !Array.isArray(r.items)) continue;
+            out[k] = {
+                label: r.label || 'Routine',
+                items: r.items.map(i => ({
+                    name: i.name || 'Step',
+                    duration: Math.max(5, parseInt(i.duration, 10) || 10),
+                    type: i.type || 'flexible'
+                }))
+            };
+        }
+        // If migration dropped everything, seed defaults.
+        return Object.keys(out).length ? out : cloneRoutines(DEFAULT_ROUTINES);
+    }
+
     function migrateFromV4(rawV4) {
         const kt = rawV4.keyTimes || DEFAULT_KEY_TIMES;
         const ollie = makePerson('Ollie', 'kid', '#667eea', '🧒');
         ollie.keyTimes = { ...DEFAULT_KEY_TIMES, ...kt };
         ollie.anchors = SEED_OLLIE_ANCHORS.map(withAnchorId);
         if (rawV4.schedules && rawV4.schedules.ollie && Array.isArray(rawV4.schedules.ollie.blocks)) {
-            ollie.schedule.blocks = rawV4.schedules.ollie.blocks;
+            ollie.schedule.blocks = rawV4.schedules.ollie.blocks.map(normalizeBlock);
         }
         const emmet = makePerson('Emmet', 'kid', '#e74c3c', '🧒');
         emmet.keyTimes = { ...DEFAULT_KEY_TIMES, ...kt };
         emmet.anchors = SEED_EMMET_ANCHORS.map(withAnchorId);
         if (rawV4.schedules && rawV4.schedules.emmet && Array.isArray(rawV4.schedules.emmet.blocks)) {
-            emmet.schedule.blocks = rawV4.schedules.emmet.blocks;
+            emmet.schedule.blocks = rawV4.schedules.emmet.blocks.map(normalizeBlock);
         }
         const parent = makePerson('You', 'adult', '#16a085', '👤');
         return {
@@ -886,12 +1075,13 @@
             selectedDay: typeof rawV4.selectedDay === 'number' ? rawV4.selectedDay : 0,
             view: 'parent',
             introSeen: true,
-            people: [ollie, emmet, parent]
+            people: [ollie, emmet, parent],
+            routines: cloneRoutines(DEFAULT_ROUTINES)
         };
     }
 
     function resetAll() {
-        if (!confirm('Start fresh? This clears all people, anchors, and schedules.')) return;
+        if (!confirm('Start fresh? This clears all people, anchors, routines, and schedules.')) return;
         try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         state = defaultState();
         renderApp();
@@ -940,6 +1130,7 @@
     function genBlockId() {
         return 'b_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
     }
+    function genSubTaskId() { return 's_' + Math.random().toString(36).slice(2, 6); }
     function blockEnd(b) { return b.start + b.duration / 60; }
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => ({
@@ -949,7 +1140,6 @@
     function currentPerson() {
         return state.people.find(p => p.id === state.currentPersonId) || state.people[0];
     }
-    // JS Sunday=0; we use Mon=0. Convert.
     function todayIndex() {
         return (new Date().getDay() + 6) % 7;
     }
@@ -1059,7 +1249,6 @@
         state.view = v;
         document.body.classList.toggle('view-kid', v === 'kid');
         saveState();
-        // Only render the toggle state — no need to rebuild calendar.
         document.querySelectorAll('.view-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.view === v);
         });
@@ -1077,27 +1266,33 @@
         const duration = Math.max(5, partial.duration | 0);
         const end = start + duration / 60;
 
-        // Hard-block only for anchor collisions. Everything else is a soft
-        // notice — see the design lens (visibility > enforcement).
         if (overlapsAnchor(p, partial.day, start, end)) {
             alert('That runs into an anchor. Try a different time.');
             return false;
         }
-        p.schedule.blocks.push({
+        const block = {
             id: genBlockId(),
             personId: p.id,
             day: partial.day,
             start, duration,
             name: partial.name,
             type: partial.type,
-            source: partial.source || 'activity'
-        });
+            source: partial.source || 'activity',
+            subTasks: []
+        };
+        p.schedule.blocks.push(block);
         saveState(); renderApp();
+
+        // First/Then chaining: after a must-do lands, offer to line up a
+        // desired-activity right after. Dopamine-sandwich support.
+        if (block.type === 'must-do' && partial.source !== 'routine' && !partial.suppressFirstThen) {
+            offerFirstThen({ personId: p.id, day: block.day, afterTime: end });
+        }
         return true;
     }
 
     function dropRoutine(routineKey, day, startTime) {
-        const routine = ROUTINES[routineKey];
+        const routine = state.routines[routineKey];
         if (!routine) return;
         const p = currentPerson();
         let cursor = clampToGrid(snap5(startTime));
@@ -1114,7 +1309,8 @@
                 duration: dur,
                 name: item.name,
                 type: item.type,
-                source: 'routine'
+                source: 'routine',
+                subTasks: []
             });
             cursor = end;
         }
@@ -1131,6 +1327,7 @@
         if (patch.duration !== undefined) next.duration = Math.max(5, patch.duration | 0);
         if (patch.start !== undefined) next.start = clampToGrid(snap5(patch.start));
         if (patch.day !== undefined) next.day = parseInt(patch.day, 10);
+        if (patch.subTasks !== undefined) next.subTasks = patch.subTasks;
         const end = next.start + next.duration / 60;
         if (overlapsAnchor(p, next.day, next.start, end)) {
             alert('That change runs into an anchor — leaving as-is.');
@@ -1161,7 +1358,10 @@
         for (const td of targetDays) {
             if (td === srcDay) continue;
             for (const b of src) {
-                p.schedule.blocks.push({ ...b, id: genBlockId(), day: td });
+                p.schedule.blocks.push({
+                    ...b, id: genBlockId(), day: td,
+                    subTasks: b.subTasks.map(st => ({ ...st, id: genSubTaskId(), done: false }))
+                });
             }
         }
         saveState(); renderApp();
@@ -1173,10 +1373,29 @@
         saveState(); renderApp();
     }
 
+    // Routine CRUD
+    function addRoutine() {
+        const key = 'r_' + Math.random().toString(36).slice(2, 8);
+        state.routines[key] = { label: 'New routine', items: [
+            { name: 'Step 1', duration: 10, type: 'flexible' }
+        ]};
+        saveState(); renderApp();
+        openRoutineModal(key);
+    }
+    function saveRoutine(key, patch) {
+        const r = state.routines[key];
+        if (!r) return;
+        if (patch.label !== undefined) r.label = patch.label;
+        if (patch.items !== undefined) r.items = patch.items;
+        saveState(); renderApp();
+    }
+    function removeRoutine(key) {
+        delete state.routines[key];
+        saveState(); renderApp();
+    }
+
     // =====================================================================
     // MERGE: contiguous same-name/same-type user blocks visually merge.
-    // Data stays segmented so edits remain granular. Groups are computed
-    // on every render from the raw block list.
     // =====================================================================
 
     function mergeAdjacent(blocks) {
@@ -1184,9 +1403,7 @@
         const groups = [];
         let curr = null;
         for (const b of sorted) {
-            const nextStartOfCurr = curr
-                ? curr.start + curr.totalDuration / 60
-                : null;
+            const nextStartOfCurr = curr ? curr.start + curr.totalDuration / 60 : null;
             if (
                 curr &&
                 curr.day === b.day &&
@@ -1196,12 +1413,16 @@
             ) {
                 curr.totalDuration += b.duration;
                 curr.blockIds.push(b.id);
+                curr.subTaskDone += b.subTasks.filter(st => st.done).length;
+                curr.subTaskTotal += b.subTasks.length;
             } else {
                 curr = {
                     day: b.day, start: b.start,
                     name: b.name, type: b.type, source: b.source,
                     totalDuration: b.duration,
-                    blockIds: [b.id]
+                    blockIds: [b.id],
+                    subTaskDone: b.subTasks.filter(st => st.done).length,
+                    subTaskTotal: b.subTasks.length
                 };
                 groups.push(curr);
             }
@@ -1214,7 +1435,6 @@
     // =====================================================================
 
     function renderApp() {
-        // View class stays on body; also drive active-toggle state.
         document.body.classList.toggle('view-kid', state.view === 'kid');
         document.querySelectorAll('.view-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.view === state.view);
@@ -1228,6 +1448,7 @@
         renderRoutineBank();
         renderCalendar();
         renderBudget();
+        renderCountdownStrip();
         renderPrintHeader();
     }
 
@@ -1350,17 +1571,17 @@
     function renderRoutineBank() {
         const bank = document.getElementById('routineBank');
         bank.innerHTML = '';
-        Object.entries(ROUTINES).forEach(([key, routine]) => {
+        Object.entries(state.routines).forEach(([key, routine]) => {
             const total = routine.items.reduce((s, i) => s + i.duration, 0);
             const card = document.createElement('div');
             card.className = 'routine-card';
             card.draggable = true;
             card.innerHTML = `
-                <div>
+                <div style="flex:1;">
                     <div class="activity-name">${escapeHtml(routine.label)}</div>
-                    <div class="routine-meta">${routine.items.length} steps</div>
+                    <div class="routine-meta">${routine.items.length} steps · ${total}m</div>
                 </div>
-                <span class="activity-duration">${total}m</span>
+                <span class="edit-marker" title="Edit routine">✎</span>
             `;
             card.addEventListener('dragstart', () => {
                 dragPayload = { kind: 'routine', routineKey: key };
@@ -1368,6 +1589,12 @@
             });
             card.addEventListener('dragend', () => {
                 card.style.opacity = '1'; dragPayload = null;
+            });
+            card.addEventListener('click', e => {
+                if (e.target.classList.contains('edit-marker')) {
+                    e.stopPropagation();
+                    openRoutineModal(key);
+                }
             });
             bank.appendChild(card);
         });
@@ -1412,6 +1639,7 @@
         });
 
         renderInactiveOverlays();
+        renderTransitionBands();
         renderAnchorBlocks();
         renderUserBlocks();
         renderKeyTimeLines();
@@ -1439,6 +1667,36 @@
         o.style.top = top + 'px';
         o.style.height = height + 'px';
         cell.appendChild(o);
+    }
+
+    // Transition band: a 10-min visual runway (stripe) before every anchor
+    // start. Silent get-ready cue, no text — softens abrupt transitions.
+    function renderTransitionBands() {
+        const p = currentPerson();
+        const bandHours = TRANSITION_MIN / 60;
+        DAYS_SHORT.forEach((_, dayIdx) => {
+            p.anchors.forEach(a => {
+                if (!a.days.includes(dayIdx)) return;
+                const bandStart = Math.max(6, a.start - bandHours);
+                const bandEnd = a.start;
+                if (bandEnd <= bandStart) return;
+                const startHour = Math.floor(bandStart);
+                const endHour = Math.floor(bandEnd - 0.0001);
+                for (let h = startHour; h <= endHour; h++) {
+                    const cell = document.querySelector(
+                        `.calendar-cell[data-day="${dayIdx}"][data-time="${h}"]`
+                    );
+                    if (!cell) continue;
+                    const segStart = h === startHour ? bandStart : h;
+                    const segEnd = h === endHour ? bandEnd : h + 1;
+                    const el = document.createElement('div');
+                    el.className = 'transition-band';
+                    el.style.top = ((segStart - h) * PX_PER_HOUR) + 'px';
+                    el.style.height = ((segEnd - segStart) * PX_PER_HOUR) + 'px';
+                    cell.appendChild(el);
+                }
+            });
+        });
     }
 
     function renderAnchorBlocks() {
@@ -1488,8 +1746,14 @@
             el.style.top = ((g.start - startHour) * PX_PER_HOUR) + 'px';
             el.style.height = g.totalDuration + 'px';
             const totalEnd = g.start + g.totalDuration / 60;
-            el.title = `${g.name}\n${format12(g.start)} – ${format12(totalEnd)} (${g.totalDuration}m)`
-                + (g.blockIds.length > 1 ? `\n${g.blockIds.length} merged blocks — click to edit first, × removes all` : '\nClick to edit');
+            const titleLines = [
+                `${g.name}`,
+                `${format12(g.start)} – ${format12(totalEnd)} (${g.totalDuration}m)`
+            ];
+            if (g.blockIds.length > 1) titleLines.push(`${g.blockIds.length} merged blocks`);
+            if (g.subTaskTotal > 0) titleLines.push(`${g.subTaskDone}/${g.subTaskTotal} steps done`);
+            titleLines.push('Click to edit');
+            el.title = titleLines.join('\n');
 
             const label = document.createElement('div');
             label.textContent = g.name;
@@ -1500,6 +1764,12 @@
                 time.style.opacity = '0.85';
                 time.textContent = format12(g.start);
                 el.appendChild(time);
+            }
+            if (g.subTaskTotal > 0) {
+                const st = document.createElement('span');
+                st.className = 'subtask-progress';
+                st.textContent = g.subTaskDone + '/' + g.subTaskTotal;
+                el.appendChild(st);
             }
             if (g.blockIds.length > 1) {
                 const badge = document.createElement('span');
@@ -1545,8 +1815,6 @@
         });
     }
 
-    // Now-line: red line + dot on today's column at the current time.
-    // Called from renderCalendar and every 60s via setInterval.
     function renderNowLine() {
         const container = document.querySelector('.calendar-container');
         container.querySelectorAll('.now-line').forEach(el => el.remove());
@@ -1568,8 +1836,43 @@
         container.appendChild(line);
     }
 
+    // Countdown chips: show upcoming key times today with live minutes-until.
+    // Externalizes transitions so kids (or ADHD-lifespan adults) can plan
+    // without having to hold time in working memory.
+    function renderCountdownStrip() {
+        const strip = document.getElementById('countdownStrip');
+        strip.innerHTML = '';
+        const p = currentPerson();
+        const now = currentDecimalHour();
+        const upcoming = KEY_TIME_DEFS
+            .map(def => ({ ...def, t: p.keyTimes[def.id] }))
+            .filter(x => x.t > now)
+            .sort((a, b) => a.t - b.t)
+            .slice(0, 3);
+        if (upcoming.length === 0) {
+            const chip = document.createElement('div');
+            chip.className = 'countdown-chip';
+            chip.innerHTML = '<span class="cd-dot"></span><span class="cd-label">Day complete</span>';
+            strip.appendChild(chip);
+            return;
+        }
+        upcoming.forEach(x => {
+            const mins = Math.round((x.t - now) * 60);
+            const chip = document.createElement('div');
+            chip.className = 'countdown-chip';
+            if (mins <= 10) chip.classList.add('now');
+            else if (mins <= 30) chip.classList.add('soon');
+            chip.innerHTML = `
+                <span class="cd-dot"></span>
+                <span class="cd-label">${escapeHtml(x.label)} in</span>
+                <span class="cd-time">${formatMins(mins)}</span>
+            `;
+            strip.appendChild(chip);
+        });
+    }
+
     // =====================================================================
-    // BUDGET + NOTICES (Parent view only; hidden in Kid view via CSS)
+    // BUDGET + NOTICES
     // =====================================================================
 
     function computeDayBudget(person, day) {
@@ -1609,6 +1912,13 @@
         if (!hasReading) {
             notices.push({ level: 'soft', text: 'No reading placed today.' });
         }
+        // Movement-break notice: any single screen block ≥ 45m is worth a stretch.
+        budget.userBlocks
+            .filter(b => b.type === 'screen-time' && b.duration >= 45)
+            .forEach(b => {
+                notices.push({ level: 'soft',
+                    text: `"${b.name}" is ${b.duration}m — consider a 5m movement break in the middle.` });
+            });
         budget.userBlocks.forEach(b => {
             const end = blockEnd(b);
             if (overlapsAnchor(person, day, b.start, end)) {
@@ -1687,6 +1997,7 @@
                 Wake ${format12(p.keyTimes.wake)} ·
                 Leave ${format12(p.keyTimes.leave)} ·
                 Dinner ${format12(p.keyTimes.dinner)} ·
+                Wind-down ${format12(p.keyTimes.windDown)} ·
                 Screens Off ${format12(p.keyTimes.screensOff)} ·
                 Bedtime ${format12(p.keyTimes.bedtime)}
             </div>
@@ -1733,6 +2044,7 @@
         const p = currentPerson();
         const first = p.schedule.blocks.find(b => b.id === group.blockIds[0]);
         if (!first) return;
+        editingBlockSubTasks = first.subTasks.map(st => ({ ...st }));
         document.getElementById('editModalTitle').textContent =
             group.blockIds.length > 1
                 ? `Edit block (1 of ${group.blockIds.length})`
@@ -1748,19 +2060,51 @@
             if (i === first.day) opt.selected = true;
             daySel.appendChild(opt);
         });
+        renderEditSubTasks();
         document.getElementById('editModal').hidden = false;
     }
+
+    // Sub-task chunking: rendered live in the edit modal. Adding/removing/
+    // toggling mutates the local working copy; only "Save" writes it back.
+    function renderEditSubTasks() {
+        const wrap = document.getElementById('editSubTasks');
+        wrap.innerHTML = '';
+        editingBlockSubTasks.forEach((st, idx) => {
+            const row = document.createElement('div');
+            row.className = 'subtask-row';
+            row.innerHTML = `
+                <input type="checkbox" ${st.done ? 'checked' : ''}>
+                <input type="text" placeholder="Step name" value="${escapeHtml(st.name)}">
+                <button class="rm" title="Remove">×</button>
+            `;
+            const [cb, name, rm] = row.children;
+            cb.addEventListener('change', () => { st.done = cb.checked; });
+            name.addEventListener('input', () => { st.name = name.value; });
+            rm.addEventListener('click', () => {
+                editingBlockSubTasks.splice(idx, 1);
+                renderEditSubTasks();
+            });
+            wrap.appendChild(row);
+        });
+    }
+
     function closeEditModal() {
         editingBlockGroup = null;
+        editingBlockSubTasks = [];
         document.getElementById('editModal').hidden = true;
     }
+
     function saveEditModal() {
         if (!editingBlockGroup) return;
+        const cleaned = editingBlockSubTasks
+            .filter(st => st.name.trim())
+            .map(st => ({ id: st.id, name: st.name.trim(), done: !!st.done }));
         editUserBlock(editingBlockGroup.blockIds[0], {
             name: document.getElementById('editName').value.trim() || 'Untitled',
             start: hmToDecimal(document.getElementById('editStart').value),
             duration: parseInt(document.getElementById('editDuration').value, 10) || 5,
-            day: document.getElementById('editDay').value
+            day: document.getElementById('editDay').value,
+            subTasks: cleaned
         });
         closeEditModal();
     }
@@ -1873,6 +2217,110 @@
         closeAnchorModal();
     }
 
+    // Routine modal — editable list of {name, duration, type} rows.
+    function openRoutineModal(key) {
+        editingRoutineKey = key;
+        const r = state.routines[key];
+        if (!r) return;
+        editingRoutineItems = r.items.map(i => ({ ...i }));
+        document.getElementById('routineModalTitle').textContent = 'Edit routine';
+        document.getElementById('routineName').value = r.label;
+        renderRoutineItems();
+        document.getElementById('routineModal').hidden = false;
+    }
+    function renderRoutineItems() {
+        const wrap = document.getElementById('routineItems');
+        wrap.innerHTML = '';
+        editingRoutineItems.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'routine-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Step name" value="${escapeHtml(item.name)}">
+                <input type="number" min="5" step="5" value="${item.duration}">
+                <select>
+                    <option value="must-do">Must-do</option>
+                    <option value="flexible">Flexible</option>
+                    <option value="screen-time">Screen</option>
+                    <option value="special">Special</option>
+                </select>
+                <button class="rm" title="Remove step">×</button>
+            `;
+            const [name, dur, type, rm] = row.children;
+            type.value = item.type;
+            name.addEventListener('input', () => { item.name = name.value; });
+            dur.addEventListener('input',  () => { item.duration = Math.max(5, parseInt(dur.value, 10) || 5); });
+            type.addEventListener('change',() => { item.type = type.value; });
+            rm.addEventListener('click', () => {
+                editingRoutineItems.splice(idx, 1);
+                renderRoutineItems();
+            });
+            wrap.appendChild(row);
+        });
+    }
+    function closeRoutineModal() {
+        editingRoutineKey = null;
+        editingRoutineItems = [];
+        document.getElementById('routineModal').hidden = true;
+    }
+    function saveRoutineModal() {
+        if (!editingRoutineKey) return;
+        const cleaned = editingRoutineItems
+            .filter(i => i.name.trim())
+            .map(i => ({ name: i.name.trim(), duration: i.duration, type: i.type }));
+        if (cleaned.length === 0) {
+            alert('A routine needs at least one step.');
+            return;
+        }
+        saveRoutine(editingRoutineKey, {
+            label: document.getElementById('routineName').value.trim() || 'Routine',
+            items: cleaned
+        });
+        closeRoutineModal();
+    }
+    function deleteRoutineModal() {
+        if (!editingRoutineKey) return;
+        if (!confirm('Remove this routine?')) return;
+        removeRoutine(editingRoutineKey);
+        closeRoutineModal();
+    }
+
+    // First/Then modal: after a must-do drop, offer to line up a "then"
+    // desired-activity right after it — dopamine sandwich made explicit.
+    function offerFirstThen({ personId, day, afterTime }) {
+        pendingFirstThen = { personId, day, afterTime };
+        const p = state.people.find(x => x.id === personId);
+        const body = document.getElementById('firstThenBody');
+        body.textContent = `Nice — a must-do at ${format12(afterTime - 0.01)} is placed. Line up a "then" activity at ${format12(afterTime)}?`;
+        const grid = document.getElementById('firstThenChoices');
+        grid.innerHTML = '';
+        ACTIVITIES.filter(a => a.type !== 'must-do').forEach(a => {
+            const btn = document.createElement('button');
+            btn.className = 'ft-pick ' + a.type;
+            btn.innerHTML = `<span>${escapeHtml(a.name)}</span><span class="activity-duration">${a.duration}m</span>`;
+            btn.addEventListener('click', () => pickFirstThen(a));
+            grid.appendChild(btn);
+        });
+        document.getElementById('firstThenModal').hidden = false;
+    }
+    function pickFirstThen(activity) {
+        if (!pendingFirstThen) return;
+        const { day, afterTime } = pendingFirstThen;
+        pendingFirstThen = null;
+        document.getElementById('firstThenModal').hidden = true;
+        addUserBlock({
+            day, start: afterTime,
+            duration: activity.duration,
+            name: activity.name,
+            type: activity.type,
+            source: 'activity',
+            suppressFirstThen: true
+        });
+    }
+    function skipFirstThen() {
+        pendingFirstThen = null;
+        document.getElementById('firstThenModal').hidden = true;
+    }
+
     // =====================================================================
     // INIT + WIRING
     // =====================================================================
@@ -1906,6 +2354,7 @@
         });
         document.getElementById('resetAllBtn').addEventListener('click', resetAll);
         document.getElementById('addAnchorBtn').addEventListener('click', () => openAnchorModal(null));
+        document.getElementById('addRoutineBtn').addEventListener('click', addRoutine);
 
         // Edit modal
         document.getElementById('modalCancelBtn').addEventListener('click', closeEditModal);
@@ -1925,6 +2374,10 @@
         document.getElementById('editModal').addEventListener('click', e => {
             if (e.target.id === 'editModal') closeEditModal();
         });
+        document.getElementById('addSubTaskBtn').addEventListener('click', () => {
+            editingBlockSubTasks.push({ id: genSubTaskId(), name: '', done: false });
+            renderEditSubTasks();
+        });
 
         // Person modal
         document.getElementById('personCancelBtn').addEventListener('click', closePersonModal);
@@ -1942,32 +2395,52 @@
             if (e.target.id === 'anchorModal') closeAnchorModal();
         });
 
+        // Routine modal
+        document.getElementById('routineCancelBtn').addEventListener('click', closeRoutineModal);
+        document.getElementById('routineSaveBtn').addEventListener('click', saveRoutineModal);
+        document.getElementById('routineDeleteBtn').addEventListener('click', deleteRoutineModal);
+        document.getElementById('addRoutineStepBtn').addEventListener('click', () => {
+            editingRoutineItems.push({ name: '', duration: 10, type: 'flexible' });
+            renderRoutineItems();
+        });
+        document.getElementById('routineModal').addEventListener('click', e => {
+            if (e.target.id === 'routineModal') closeRoutineModal();
+        });
+
+        // First/Then modal
+        document.getElementById('firstThenSkipBtn').addEventListener('click', skipFirstThen);
+        document.getElementById('firstThenModal').addEventListener('click', e => {
+            if (e.target.id === 'firstThenModal') skipFirstThen();
+        });
+
         // Keyboard
         document.addEventListener('keydown', e => {
             const editOpen = !document.getElementById('editModal').hidden;
             const personOpen = !document.getElementById('personModal').hidden;
             const anchorOpen = !document.getElementById('anchorModal').hidden;
+            const routineOpen = !document.getElementById('routineModal').hidden;
+            const ftOpen = !document.getElementById('firstThenModal').hidden;
             if (e.key === 'Escape') {
                 if (editOpen) closeEditModal();
                 if (personOpen) closePersonModal();
                 if (anchorOpen) closeAnchorModal();
+                if (routineOpen) closeRoutineModal();
+                if (ftOpen) skipFirstThen();
                 if (!document.getElementById('introOverlay').hidden) dismissIntro();
             } else if (e.key === 'Enter' && editOpen && e.target.tagName !== 'BUTTON') {
                 e.preventDefault(); saveEditModal();
             }
         });
 
-        // First-run intro
         if (!state.introSeen) {
             document.getElementById('introOverlay').hidden = false;
         }
 
         renderApp();
 
-        // Now-line ticks. Full calendar re-render every render already draws
-        // the now-line; here we tick it independently once a minute without
-        // rebuilding everything.
-        setInterval(renderNowLine, 60 * 1000);
+        // Live ticks: now-line and countdown strip. Full re-render every
+        // 60s handles both without rebuilding the calendar structure.
+        setInterval(() => { renderNowLine(); renderCountdownStrip(); }, 60 * 1000);
         window.addEventListener('resize', renderNowLine);
     }
 
