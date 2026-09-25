@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Operating System v4.0</title>
+    <title>Family Operating System v5.4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -23,45 +23,110 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
-        header { text-align: center; margin-bottom: 16px; }
-        h1 { color: #667eea; font-size: 1.9em; margin-bottom: 6px; }
-        .subtitle { color: #666; font-size: 0.95em; }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        header .brand { text-align: left; }
+        h1 { color: #667eea; font-size: 1.6em; }
+        .subtitle { color: #666; font-size: 0.85em; }
         .version {
             display: inline-block;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white; padding: 3px 12px; border-radius: 20px;
-            font-size: 0.75em; font-weight: bold; margin-top: 6px;
+            color: white; padding: 2px 10px; border-radius: 20px;
+            font-size: 0.7em; font-weight: bold; margin-left: 6px;
+            vertical-align: middle;
         }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+
+        .view-toggle {
+            display: inline-flex; background: #f0f0f0;
+            border-radius: 10px; padding: 3px; gap: 3px;
+        }
+        .view-btn {
+            padding: 6px 14px; border: none; background: transparent;
+            border-radius: 8px; cursor: pointer; font-weight: 600;
+            color: #666; font-size: 0.85em;
+        }
+        .view-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .icon-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: #f0f0f0; border: none; cursor: pointer;
+            font-weight: 700; color: #667eea; font-size: 1em;
+        }
+        .icon-btn:hover { background: #e0e0e0; }
 
         .print-only { display: none; }
 
         .controls {
-            display: flex; gap: 12px; justify-content: center;
-            margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+            display: flex; gap: 12px; align-items: center;
+            margin-bottom: 12px; flex-wrap: wrap;
         }
-
-        .kid-toggle {
-            display: flex; background: #f0f0f0;
-            border-radius: 12px; padding: 4px; gap: 4px;
+        .person-chips {
+            display: flex; gap: 6px; overflow-x: auto;
+            padding: 4px; flex: 1; min-width: 0;
+            scrollbar-width: thin;
         }
-        .kid-btn {
-            padding: 10px 24px; border: none; background: transparent;
-            border-radius: 8px; cursor: pointer; font-weight: 600;
-            color: #666; transition: all 0.2s ease;
+        .person-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 20px;
+            background: #f0f0f0; border: 2px solid transparent;
+            cursor: pointer; font-weight: 600; font-size: 0.85em;
+            color: #444; white-space: nowrap; flex: 0 0 auto;
         }
-        .kid-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .person-chip .emoji { font-size: 1.15em; }
+        .person-chip.active {
+            border-color: var(--chip-color, #667eea);
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
+        .person-chip .edit-marker {
+            font-size: 0.75em; color: #999; padding-left: 4px;
+        }
+        .person-chip.active .edit-marker { color: var(--chip-color, #667eea); }
+        .person-add-chip {
+            padding: 6px 12px; border-radius: 20px;
+            background: transparent; border: 2px dashed #ccc;
+            color: #888; font-weight: 600; font-size: 0.85em;
+            cursor: pointer; flex: 0 0 auto;
+        }
+        .person-add-chip:hover { border-color: #667eea; color: #667eea; }
 
         .day-selector {
             display: flex; align-items: center; gap: 8px;
-            background: #f0f0f0; padding: 8px 14px; border-radius: 12px;
+            background: #f0f0f0; padding: 6px 12px; border-radius: 12px;
         }
-        .day-selector label { font-weight: 600; color: #444; font-size: 0.9em; }
+        .day-selector label { font-weight: 600; color: #444; font-size: 0.85em; }
         .day-selector select {
-            padding: 6px 10px; border: 2px solid rgba(0,0,0,0.1);
+            padding: 5px 8px; border: 2px solid rgba(0,0,0,0.1);
             border-radius: 8px; font-weight: 600; background: white;
+        }
+
+        /* Countdown chips: externalize time transitions for time-blindness. */
+        .countdown-strip {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .countdown-chip {
+            background: #f0f0f0;
+            padding: 6px 12px; border-radius: 20px;
+            font-size: 0.82em; font-weight: 600; color: #444;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .countdown-chip .cd-label { color: #666; }
+        .countdown-chip .cd-time { font-variant-numeric: tabular-nums; }
+        .countdown-chip.soon { background: #fff4d1; color: #7a5300; }
+        .countdown-chip.now  { background: #ffd7d1; color: #8a1a14; }
+        .countdown-chip .cd-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor; opacity: 0.5;
         }
 
         .main-layout {
@@ -71,7 +136,15 @@
             margin-bottom: 16px;
         }
 
-        .sidebar { display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; }
+        .sidebar {
+            display: flex; flex-direction: column; gap: 12px;
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        /* Kid view hides observational/data panels. */
+        body.view-kid #budgetPanel,
+        body.view-kid #keyTimesPanel,
+        body.view-kid #anchorsPanel { display: none; }
 
         .panel {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -82,7 +155,13 @@
             color: #667eea;
             font-size: 1em;
             margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
+        .panel h3 .h3-action {
+            font-size: 0.75em; font-weight: 600; cursor: pointer;
+            color: #667eea; background: none; border: none; padding: 2px 6px;
+        }
+        .panel h3 .h3-action:hover { text-decoration: underline; }
 
         .key-times-grid {
             display: grid;
@@ -90,18 +169,32 @@
             gap: 6px 10px;
             align-items: center;
         }
-        .key-times-grid label {
-            font-size: 0.85em; color: #444; font-weight: 600;
-        }
+        .key-times-grid label { font-size: 0.85em; color: #444; font-weight: 600; }
         .key-times-grid input[type="time"] {
             padding: 4px 6px; border: 1px solid #ccc; border-radius: 6px;
             font-weight: 600; background: white; font-size: 0.85em;
         }
-        .key-times-actions {
-            margin-top: 8px; display: flex; gap: 6px;
+
+        .anchor-item {
+            background: white; border-radius: 8px;
+            padding: 6px 10px; margin-bottom: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid #95a5a6;
+            font-size: 0.82em;
+            cursor: pointer;
         }
-        .key-times-actions button {
-            font-size: 0.75em; padding: 5px 8px; flex: 1;
+        .anchor-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .anchor-item .anchor-label { font-weight: 600; }
+        .anchor-item .anchor-meta { font-size: 0.85em; color: #666; }
+        .anchor-item.school { border-left-color: #7f8c8d; }
+        .anchor-item.work { border-left-color: #2c3e50; }
+        .anchor-item.travel { border-left-color: #e67e22; }
+        .anchor-item.wait { border-left-color: #bdc3c7; }
+        .anchor-item.appointment { border-left-color: #16a085; }
+        .anchor-item.other { border-left-color: #95a5a6; }
+        .anchor-empty {
+            font-size: 0.82em; color: #888; padding: 4px 0;
+            font-style: italic;
         }
 
         .activity-section { margin-bottom: 10px; }
@@ -116,28 +209,27 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
             display: flex; justify-content: space-between; align-items: center;
             border-left: 4px solid;
-            transition: transform 0.15s, box-shadow 0.15s;
         }
         .activity-card:hover, .routine-card:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         }
         .activity-card:active, .routine-card:active { cursor: grabbing; }
-
         .activity-card.must-do { border-left-color: #e74c3c; }
         .activity-card.flexible { border-left-color: #f39c12; }
         .activity-card.screen-time { border-left-color: #9b59b6; }
         .activity-card.special { border-left-color: #3498db; }
         .routine-card { border-left-color: #16a085; }
-
         .activity-name { font-weight: 600; font-size: 0.85em; }
         .activity-duration {
             background: #f0f0f0; padding: 3px 8px; border-radius: 10px;
             font-size: 0.72em; font-weight: 600; color: #666;
         }
-        .routine-meta {
-            font-size: 0.7em; color: #888; margin-top: 2px;
+        .routine-meta { font-size: 0.7em; color: #888; margin-top: 2px; }
+        .routine-card .edit-marker {
+            font-size: 0.75em; color: #999; padding-left: 6px; cursor: pointer;
         }
+        .routine-card .edit-marker:hover { color: #16a085; }
 
         .budget-row {
             display: flex; justify-content: space-between;
@@ -147,17 +239,18 @@
         .budget-row:last-child { border-bottom: none; }
         .budget-row .label { color: #555; }
         .budget-row .value { font-weight: 700; color: #333; font-variant-numeric: tabular-nums; }
-        .budget-row.over .value { color: #e74c3c; }
+        .budget-row.over .value { color: #c0392b; }
 
-        .warning-list {
-            margin-top: 8px; display: flex; flex-direction: column; gap: 4px;
-        }
-        .warning {
+        .notice-list { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .notice {
             font-size: 0.78em; padding: 5px 8px; border-radius: 6px;
             border-left: 3px solid;
         }
-        .warning.warn { background: #fff8e1; border-color: #f39c12; color: #7a4d00; }
-        .warning.error { background: #ffebee; border-color: #e74c3c; color: #8a1a14; }
+        .notice.soft { background: #fff8e1; border-color: #f39c12; color: #7a4d00; }
+        .notice.firm { background: #ffebee; border-color: #e74c3c; color: #8a1a14; }
+        .notice-ok {
+            font-size: 0.78em; color: #27ae60; padding: 4px 0;
+        }
 
         .calendar-container {
             background: white; border-radius: 16px; padding: 12px;
@@ -166,6 +259,9 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: 70px repeat(7, 1fr);
+            /* First row (day headers) is 40px; every following row is 60px. */
+            /* JS keys off HEADER_PX = 40 for absolute-positioned lines. */
+            grid-template-rows: 40px;
             grid-auto-rows: 60px;
             gap: 0;
             min-width: 1100px;
@@ -185,6 +281,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+        .day-header.today {
+            box-shadow: inset 0 -3px 0 #27ae60;
+        }
         .corner-cell {
             border-bottom: 2px solid #e9ecef;
             background: #fafafa;
@@ -200,9 +299,7 @@
             border: 1px solid #f0f0f0; position: relative; background: white;
             overflow: visible;
         }
-        .calendar-cell.selected-day {
-            background: rgba(102, 126, 234, 0.06);
-        }
+        .calendar-cell.selected-day { background: rgba(102, 126, 234, 0.06); }
         .calendar-cell.dropzone {
             background: rgba(102, 126, 234, 0.18) !important;
             border: 2px dashed #667eea;
@@ -218,6 +315,19 @@
             z-index: 2;
         }
 
+        /* Transition band: 10 min of visual runway before each anchor. */
+        .transition-band {
+            position: absolute;
+            left: 0; right: 0;
+            background: repeating-linear-gradient(
+                135deg,
+                rgba(230,126,34,0.10), rgba(230,126,34,0.10) 5px,
+                rgba(230,126,34,0.20) 5px, rgba(230,126,34,0.20) 10px);
+            pointer-events: none;
+            z-index: 3;
+            border-top: 1px dashed rgba(230,126,34,0.5);
+        }
+
         .key-time-line {
             position: absolute;
             left: 70px; right: 0;
@@ -228,6 +338,7 @@
         .key-time-line.wake { background: #27ae60; }
         .key-time-line.leave { background: #e67e22; }
         .key-time-line.dinner { background: #2980b9; }
+        .key-time-line.windDown { background: #d35400; }
         .key-time-line.screensOff { background: #e74c3c; }
         .key-time-line.bedtime { background: #8e44ad; }
 
@@ -241,8 +352,26 @@
         .key-time-line.wake .key-time-label { background: #27ae60; }
         .key-time-line.leave .key-time-label { background: #e67e22; }
         .key-time-line.dinner .key-time-label { background: #2980b9; }
+        .key-time-line.windDown .key-time-label { background: #d35400; }
         .key-time-line.screensOff .key-time-label { background: #e74c3c; }
         .key-time-line.bedtime .key-time-label { background: #8e44ad; }
+
+        /* Now-line: horizontal marker on today's column showing current time */
+        .now-line {
+            position: absolute;
+            height: 0;
+            border-top: 2px solid #e74c3c;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .now-line::before {
+            content: '';
+            position: absolute;
+            left: -5px; top: -6px;
+            width: 10px; height: 10px;
+            background: #e74c3c;
+            border-radius: 50%;
+        }
 
         .placed-block {
             position: absolute;
@@ -259,36 +388,164 @@
         }
         .placed-block.user { cursor: pointer; }
         .placed-block.user:hover { filter: brightness(1.05); }
-        .placed-block.locked { z-index: 4; cursor: not-allowed; opacity: 0.92; }
-        .placed-block.locked::before {
-            content: '🔒'; margin-right: 3px; font-size: 0.85em;
+        .placed-block.anchor { z-index: 4; cursor: not-allowed; opacity: 0.92; }
+        .placed-block.anchor::before {
+            content: '⚓'; margin-right: 4px; font-size: 0.9em;
         }
+        .placed-block.anchor.school { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+        .placed-block.anchor.work { background: linear-gradient(135deg, #34495e, #2c3e50); }
+        .placed-block.anchor.travel { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .placed-block.anchor.wait { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
+        .placed-block.anchor.appointment { background: linear-gradient(135deg, #16a085, #1abc9c); }
+        .placed-block.anchor.other { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
 
-        .placed-block.system { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
-        .placed-block.travel { background: linear-gradient(135deg, #f39c12, #e67e22); }
-        .placed-block.wait { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
         .placed-block.must-do { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .placed-block.flexible { background: linear-gradient(135deg, #f39c12, #d35400); }
         .placed-block.screen-time { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
         .placed-block.special { background: linear-gradient(135deg, #3498db, #2980b9); }
         .placed-block.routine { background: linear-gradient(135deg, #16a085, #1abc9c); }
 
-        .block-remove {
+        .placed-block .merge-count,
+        .placed-block .subtask-progress {
+            position: absolute; top: 2px;
+            background: rgba(255,255,255,0.35); color: white;
+            font-size: 0.7em; padding: 0 5px; border-radius: 8px;
+        }
+        .placed-block .merge-count { right: 44px; }
+        .placed-block .subtask-progress { right: 68px; }
+
+        .block-remove,
+        .timer-btn {
             position: absolute;
-            top: 1px; right: 2px;
+            top: 1px;
             width: 16px; height: 16px;
             background: rgba(0,0,0,0.35);
             color: white; border: none; border-radius: 50%;
-            font-size: 11px; line-height: 14px;
             cursor: pointer; padding: 0;
             display: flex; align-items: center; justify-content: center;
+            font-size: 10px; line-height: 14px;
         }
-        .block-remove:hover { background: rgba(0,0,0,0.6); }
+        .block-remove { right: 2px; font-size: 11px; }
+        .block-remove:hover, .timer-btn:hover { background: rgba(0,0,0,0.6); }
+        .timer-btn { right: 22px; }
+        .timer-btn.active { background: #e74c3c; }
+
+        /* Tap-to-start countdown: a bar fills across the block over the
+           block's duration. The clock ends you, not the task. */
+        .block-timer {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.18);
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .block-timer-fill {
+            height: 100%; width: 0;
+            background: rgba(255,255,255,0.85);
+            transition: width 1s linear;
+        }
+
+        .howto-note {
+            background: #eef4ff;
+            border-left: 3px solid #667eea;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.82em;
+            color: #333;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Daily deal 30/30/30/30 progress — shown at the top of Day Notes. */
+        .deal-section {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed rgba(0,0,0,0.12);
+        }
+        .deal-heading {
+            font-size: 0.72em; font-weight: 700; color: #666;
+            text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;
+        }
+        .deal-row {
+            display: grid;
+            grid-template-columns: 62px 1fr 56px;
+            gap: 8px; align-items: center;
+            font-size: 0.78em;
+            margin-bottom: 4px;
+        }
+        .deal-label { font-weight: 600; color: #444; }
+        .deal-track {
+            height: 8px; background: #e0e0e0; border-radius: 4px;
+            overflow: hidden;
+        }
+        .deal-fill {
+            height: 100%; background: #f39c12;
+            transition: width 0.3s;
+        }
+        .deal-fill.full { background: #27ae60; }
+        .deal-val {
+            text-align: right; color: #666; font-variant-numeric: tabular-nums;
+        }
+        .deal-val.full { color: #27ae60; font-weight: 700; }
+
+        /* Family templates — cards + edit modal rows. */
+        .template-card {
+            background: white; border-radius: 8px;
+            padding: 8px 10px; margin-bottom: 4px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid #8e44ad;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            gap: 6px;
+        }
+        .template-card .template-body { flex: 1; min-width: 0; }
+        .template-card .apply-btn {
+            font-size: 0.7em;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white; border: none; border-radius: 6px;
+            font-weight: 700; cursor: pointer;
+        }
+        .template-card .apply-btn:hover { filter: brightness(1.1); }
+        .template-card .edit-marker {
+            font-size: 0.75em; color: #999; cursor: pointer; padding: 0 4px;
+        }
+        .template-card .edit-marker:hover { color: #8e44ad; }
+
+        .template-item {
+            background: #fafafa; border: 1px solid #eee;
+            border-radius: 6px; padding: 8px;
+            margin-bottom: 6px;
+            display: flex; flex-direction: column; gap: 6px;
+            position: relative;
+        }
+        .template-item > .rm {
+            position: absolute; top: 4px; right: 4px;
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 2px 6px;
+        }
+        .template-item-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+        .template-item-row.two { grid-template-columns: 1fr 1fr; }
+        .template-item label {
+            display: block; font-size: 0.7em; font-weight: 700;
+            color: #666; margin-bottom: 2px; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .template-item input, .template-item select {
+            margin: 0; padding: 5px 7px; font-size: 0.85em;
+            width: 100%;
+        }
+        .template-hint {
+            font-size: 0.75em; color: #888; margin-top: 4px; line-height: 1.4;
+        }
 
         .btn {
             padding: 7px 14px; border: none; border-radius: 8px;
             font-weight: 600; cursor: pointer; font-size: 0.85em;
-            transition: transform 0.15s, box-shadow 0.15s;
             background: white; color: #444;
             border: 1px solid #ddd;
         }
@@ -297,16 +554,18 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white; border: none;
         }
+        .btn-quiet {
+            background: transparent; border: none; color: #667eea;
+            padding: 6px 10px;
+        }
         .btn-danger {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white; border: none;
         }
 
-        .action-buttons {
-            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
-        }
+        .action-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-        /* Modal */
+        /* Modal overlays share behavior */
         .modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.45);
@@ -316,7 +575,8 @@
         .modal-overlay[hidden] { display: none; }
         .modal {
             background: white; border-radius: 16px; padding: 22px;
-            width: 360px; max-width: 92vw;
+            width: 460px; max-width: 92vw;
+            max-height: 90vh; overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .modal h3 { color: #667eea; margin-bottom: 14px; }
@@ -330,15 +590,125 @@
             font-size: 0.95em;
         }
         .modal-buttons {
-            display: flex; gap: 8px; margin-top: 16px;
-            justify-content: flex-end;
+            display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .modal-buttons .btn { font-size: 0.85em; }
+
+        .days-checkboxes {
+            display: flex; gap: 4px; margin-top: 4px;
+        }
+        .days-checkboxes label {
+            flex: 1; text-align: center; padding: 6px 0;
+            background: #f0f0f0; border-radius: 6px;
+            cursor: pointer; font-size: 0.85em; margin: 0;
+        }
+        .days-checkboxes input { display: none; }
+        .days-checkboxes input:checked + span { color: white; }
+        .days-checkboxes label:has(input:checked) {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .color-swatches {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+        }
+        .swatch {
+            width: 28px; height: 28px; border-radius: 50%;
+            cursor: pointer; border: 3px solid transparent;
+        }
+        .swatch.selected { border-color: #333; }
+
+        /* Sub-tasks list inside edit block modal (ADHD chunking). */
+        .subtask-section {
+            border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;
+        }
+        .subtask-section > .subtask-heading {
+            font-size: 0.82em; font-weight: 600; color: #444;
+            margin-bottom: 6px;
+        }
+        .subtask-row {
+            display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+        }
+        .subtask-row input[type="text"] {
+            flex: 1; margin-top: 0; padding: 5px 8px; font-size: 0.9em;
+        }
+        .subtask-row input[type="checkbox"] { width: auto; margin: 0; }
+        .subtask-row .rm {
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 0 4px;
+        }
+        .subtask-add {
+            font-size: 0.82em; color: #667eea; cursor: pointer;
+            background: none; border: none; padding: 4px 0;
+        }
+        .subtask-add:hover { text-decoration: underline; }
+
+        /* Routine editor */
+        .routine-item-row {
+            display: grid;
+            grid-template-columns: 1fr 60px 100px 24px;
+            gap: 6px; align-items: center; margin-bottom: 4px;
+        }
+        .routine-item-row input, .routine-item-row select {
+            margin: 0; padding: 5px 8px; font-size: 0.9em;
+        }
+        .routine-item-row .rm {
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 0;
+        }
+        .routine-item-header {
+            display: grid;
+            grid-template-columns: 1fr 60px 100px 24px;
+            gap: 6px;
+            font-size: 0.72em; font-weight: 700; color: #666;
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+
+        /* First/then modal — small chooser after must-do drop. */
+        .first-then-body { font-size: 0.9em; color: #444; margin-bottom: 12px; }
+        .first-then-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            margin-bottom: 12px;
+        }
+        .first-then-grid .ft-pick {
+            background: white; border: 1px solid #ddd; border-left: 4px solid;
+            border-radius: 8px; padding: 8px 10px; cursor: pointer;
+            font-size: 0.85em; font-weight: 600; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .first-then-grid .ft-pick:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .first-then-grid .ft-pick.flexible { border-left-color: #f39c12; }
+        .first-then-grid .ft-pick.screen-time { border-left-color: #9b59b6; }
+        .first-then-grid .ft-pick.special { border-left-color: #3498db; }
+
+        /* Intro overlay */
+        .intro-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .intro-overlay[hidden] { display: none; }
+        .intro-card {
+            background: white; border-radius: 16px; padding: 28px;
+            max-width: 620px; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        }
+        .intro-card h2 { color: #667eea; margin-bottom: 12px; font-size: 1.4em; }
+        .intro-card h4 { color: #333; margin-top: 16px; margin-bottom: 6px; font-size: 1em; }
+        .intro-card p { color: #444; line-height: 1.5; font-size: 0.92em; margin-bottom: 8px; }
+        .intro-card ul { margin: 4px 0 8px 20px; color: #444; font-size: 0.92em; line-height: 1.5; }
+        .intro-card .intro-footer {
+            margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;
         }
 
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; padding: 0; max-width: none; }
             header, .controls, .sidebar, .action-buttons,
-            .modal-overlay, .block-remove { display: none !important; }
+            .countdown-strip,
+            .modal-overlay, .intro-overlay, .block-remove { display: none !important; }
             .main-layout { grid-template-columns: 1fr; }
             .calendar-container { border: 1px solid #ccc; }
             .print-only {
@@ -356,52 +726,78 @@
 <body>
     <div class="container">
         <header>
-            <h1>🗓️ Family Operating System</h1>
-            <p class="subtitle">Weekly Schedule Builder</p>
-            <span class="version">v4.0</span>
+            <div class="brand">
+                <h1>Family Operating System<span class="version">v5.4</span></h1>
+                <p class="subtitle">A visible scaffold for the family week.</p>
+            </div>
+            <div class="header-actions">
+                <div class="view-toggle" id="viewToggle">
+                    <button class="view-btn active" data-view="parent">Parent view</button>
+                    <button class="view-btn" data-view="kid">Kid view</button>
+                </div>
+                <button class="icon-btn" id="introBtn" title="Before you start">?</button>
+            </div>
         </header>
 
         <div class="print-only" id="printHeader"></div>
 
         <div class="controls">
-            <div class="kid-toggle">
-                <button class="kid-btn active" data-kid="ollie">Ollie</button>
-                <button class="kid-btn" data-kid="emmet">Emmet</button>
-            </div>
-
+            <div class="person-chips" id="personChips"></div>
             <div class="day-selector">
-                <label for="daySelect">Selected day:</label>
+                <label for="daySelect">Day:</label>
                 <select id="daySelect"></select>
             </div>
         </div>
 
+        <div class="countdown-strip" id="countdownStrip"></div>
+
         <div class="main-layout">
-            <div class="sidebar">
-                <div class="panel">
+            <div class="sidebar" id="sidebar">
+                <div class="panel" id="keyTimesPanel">
                     <h3>Key Times</h3>
                     <div class="key-times-grid" id="keyTimesGrid"></div>
-                    <div class="key-times-actions">
-                        <button class="btn" id="resetKeyTimesBtn">Reset Times</button>
+                </div>
+
+                <div class="panel" id="anchorsPanel">
+                    <h3>
+                        Anchors
+                        <button class="h3-action" id="addAnchorBtn">+ Add</button>
+                    </h3>
+                    <div id="anchorList"></div>
+                </div>
+
+                <div class="panel" id="budgetPanel">
+                    <h3>Day Notes</h3>
+                    <div class="deal-section" id="dealSection">
+                        <div class="deal-heading">Daily deal (30/30/30/30)</div>
+                        <div id="dealBar"></div>
                     </div>
-                </div>
-
-                <div class="panel">
-                    <h3>Day Budget</h3>
                     <div id="budgetBox"></div>
-                    <div class="warning-list" id="warningList"></div>
+                    <div class="notice-list" id="noticeList"></div>
                 </div>
 
-                <div class="panel">
-                    <h3>🎨 Activities</h3>
+                <div class="panel" id="activitiesPanel">
+                    <h3>Activities</h3>
                     <div id="activityBank"></div>
                 </div>
 
-                <div class="panel">
-                    <h3>📦 Routines</h3>
+                <div class="panel" id="routinesPanel">
+                    <h3>
+                        Routines
+                        <button class="h3-action" id="addRoutineBtn">+ Add</button>
+                    </h3>
                     <div id="routineBank"></div>
                 </div>
 
-                <div class="panel">
+                <div class="panel" id="templatesPanel">
+                    <h3>
+                        Family templates
+                        <button class="h3-action" id="addTemplateBtn">+ Add</button>
+                    </h3>
+                    <div id="templateBank"></div>
+                </div>
+
+                <div class="panel" id="dayActionsPanel">
                     <h3>Day Actions</h3>
                     <div style="display:flex; flex-direction:column; gap:6px;">
                         <button class="btn" id="copyWeekdaysBtn">Copy day to weekdays</button>
@@ -417,30 +813,172 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn btn-primary" onclick="window.print()">🖨️ Print Schedule</button>
-            <button class="btn btn-danger" id="resetAllBtn">Reset All</button>
+            <button class="btn btn-primary" onclick="window.print()">Print schedule</button>
+            <button class="btn btn-danger" id="resetAllBtn">Start fresh</button>
         </div>
     </div>
 
+    <!-- Edit user block modal (with sub-tasks + how-to note) -->
     <div class="modal-overlay" id="editModal" hidden>
         <div class="modal">
-            <h3>Edit Block</h3>
-            <label>Name
-                <input type="text" id="editName">
-            </label>
-            <label>Start time
-                <input type="time" id="editStart">
-            </label>
-            <label>Duration (minutes)
-                <input type="number" id="editDuration" min="5" step="5">
-            </label>
-            <label>Day
-                <select id="editDay"></select>
-            </label>
+            <h3 id="editModalTitle">Edit block</h3>
+            <label>Name<input type="text" id="editName"></label>
+            <label>Start time<input type="time" id="editStart"></label>
+            <label>Duration (minutes)<input type="number" id="editDuration" min="5" step="5"></label>
+            <label>Day<select id="editDay"></select></label>
+            <div class="howto-note" id="editHowToNote" hidden></div>
+            <div class="subtask-section">
+                <div class="subtask-heading">Steps (optional)</div>
+                <div id="editSubTasks"></div>
+                <button class="subtask-add" id="addSubTaskBtn">+ Add step</button>
+            </div>
             <div class="modal-buttons">
-                <button class="btn btn-danger" id="modalDeleteBtn">Delete</button>
+                <button class="btn btn-danger" id="modalDeleteBtn">Remove</button>
                 <button class="btn" id="modalCancelBtn">Cancel</button>
                 <button class="btn btn-primary" id="modalSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Person edit modal -->
+    <div class="modal-overlay" id="personModal" hidden>
+        <div class="modal">
+            <h3 id="personModalTitle">Person</h3>
+            <label>Name<input type="text" id="personName"></label>
+            <label>Emoji (optional, one character)<input type="text" id="personEmoji" maxlength="4"></label>
+            <label>Role
+                <select id="personRole">
+                    <option value="kid">Kid</option>
+                    <option value="adult">Adult</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>Color
+                <div class="color-swatches" id="personColors"></div>
+            </label>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="personDeleteBtn">Remove person</button>
+                <button class="btn" id="personCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="personSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anchor edit modal -->
+    <div class="modal-overlay" id="anchorModal" hidden>
+        <div class="modal">
+            <h3 id="anchorModalTitle">Anchor</h3>
+            <label>Label<input type="text" id="anchorLabel" placeholder="School, Work, Therapy…"></label>
+            <label>Start<input type="time" id="anchorStart"></label>
+            <label>End<input type="time" id="anchorEnd"></label>
+            <label>Type
+                <select id="anchorType">
+                    <option value="school">School</option>
+                    <option value="work">Work</option>
+                    <option value="travel">Travel</option>
+                    <option value="wait">Wait</option>
+                    <option value="appointment">Appointment</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>Days
+                <div class="days-checkboxes" id="anchorDays"></div>
+            </label>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="anchorDeleteBtn">Remove</button>
+                <button class="btn" id="anchorCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="anchorSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Routine edit modal -->
+    <div class="modal-overlay" id="routineModal" hidden>
+        <div class="modal">
+            <h3 id="routineModalTitle">Routine</h3>
+            <label>Name<input type="text" id="routineName" placeholder="Morning, Bedtime, Homework flow…"></label>
+            <div class="subtask-section">
+                <div class="subtask-heading">Steps</div>
+                <div class="routine-item-header">
+                    <div>Name</div><div>Mins</div><div>Type</div><div></div>
+                </div>
+                <div id="routineItems"></div>
+                <button class="subtask-add" id="addRoutineStepBtn">+ Add step</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="routineDeleteBtn">Remove routine</button>
+                <button class="btn" id="routineCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="routineSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family template edit modal -->
+    <div class="modal-overlay" id="templateModal" hidden>
+        <div class="modal">
+            <h3 id="templateModalTitle">Family template</h3>
+            <label>Name<input type="text" id="templateName" placeholder="Family dinner, Thursday reset…"></label>
+            <div class="subtask-section">
+                <div class="subtask-heading">Blocks — each row places one block on the selected day for the selected people</div>
+                <div id="templateItems"></div>
+                <button class="subtask-add" id="addTemplateItemBtn">+ Add block</button>
+                <p class="template-hint">Apply stamps every row across everyone the row targets. Rows that overlap an anchor are skipped and named.</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="templateDeleteBtn">Remove template</button>
+                <button class="btn" id="templateCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="templateSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- First/Then modal — offered after a must-do drop -->
+    <div class="modal-overlay" id="firstThenModal" hidden>
+        <div class="modal">
+            <h3>Line up a "then"?</h3>
+            <div class="first-then-body" id="firstThenBody"></div>
+            <div class="first-then-grid" id="firstThenChoices"></div>
+            <div class="modal-buttons">
+                <button class="btn" id="firstThenSkipBtn">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Before-you-start intro -->
+    <div class="intro-overlay" id="introOverlay" hidden>
+        <div class="intro-card">
+            <h2>Before you start</h2>
+            <p>This tool works when the conversation happens first. It's a scaffold, not a jailer — the goal is for kids to see their time so they can shape it, not to enforce a parent-imposed grid.</p>
+
+            <h4>Talk about it together</h4>
+            <p>Before adding blocks, agree as a family on the shape of the week:</p>
+            <ul>
+                <li>What's non-negotiable, and <em>why</em>? (School, sleep, meals.)</li>
+                <li>What's flexible? (Screens, free play, order of homework.)</li>
+                <li>What does everyone need — the kids <em>and</em> the adults?</li>
+            </ul>
+
+            <h4>The clock ends you, not the task</h4>
+            <p>When a block's timer goes off, you're done — even mid-job. You don't have to finish it, you have to spend the time. If you stop in the middle, the supplies still get put away.</p>
+
+            <h4>Two things aren't on the clock, because they aren't chores</h4>
+            <ul>
+                <li>When you leave a room, your dishes and your trash come with you.</li>
+                <li>Clean up what you see on the way past, whoever it belongs to.</li>
+            </ul>
+            <p>No counting, nobody keeping score on that second part. If everybody does it, it balances out.</p>
+
+            <h4>Give it two weeks</h4>
+            <p>New routines take a couple of weeks to feel normal. Plan to sit down at day 14 and adjust together. That check-in matters more than any single day.</p>
+
+            <h4>Repair, don't punish</h4>
+            <p>Missed reading, over-screened afternoons — these are data, not verdicts. This app will show what happened; the conversation with the kid is where meaning gets made.</p>
+
+            <h4>Two views, same data</h4>
+            <p>Parent view shows time budgets and observations. Kid view hides those so kids can just design their day. Toggle at any time in the top right.</p>
+
+            <div class="intro-footer">
+                <button class="btn btn-primary" id="introDismissBtn">Got it</button>
             </div>
         </div>
     </div>
@@ -450,120 +988,304 @@
     // CONSTANTS
     // =====================================================================
 
-    const STORAGE_KEY = 'familyOS.v4';
-    const SCHEMA_VERSION = 4;
+    const STORAGE_KEY = 'familyOS.v5';   // v5 and v5.1 share storage; migration handles both.
+    const SCHEMA_VERSION = 6;             // v5.1 bumps schema (windDown, routines, subTasks).
 
-    const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const DAYS_LETTER = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
     const PX_PER_HOUR = 60;
     const HEADER_PX = 40;
+    const TRANSITION_MIN = 10;           // minutes of runway before each anchor
 
     const DEFAULT_KEY_TIMES = {
-        wake: 6.5,        // 06:30
-        leave: 6.83,      // 06:50
-        dinner: 18.0,     // 18:00
-        screensOff: 20.0, // 20:00
-        bedtime: 21.0     // 21:00
+        wake: 6.5, leave: 6.83, dinner: 18.0,
+        windDown: 20.0, screensOff: 20.0, bedtime: 21.0
     };
-
     const KEY_TIME_DEFS = [
-        { id: 'wake',       label: 'Wake Up' },
+        { id: 'wake',       label: 'Wake' },
         { id: 'leave',      label: 'Leave House' },
         { id: 'dinner',     label: 'Dinner' },
+        { id: 'windDown',   label: 'Wind-down' },
         { id: 'screensOff', label: 'Screens Off' },
         { id: 'bedtime',    label: 'Bedtime' }
     ];
 
-    // System (locked) blocks per kid. These are NEVER stored in user state —
-    // they are derived constants and re-rendered every time.
-    const SYSTEM_BLOCKS = {
-        ollie: [
-            { start: 6.83,  end: 7.75,  label: '🚗 Travel',   type: 'travel' },
-            { start: 7.75,  end: 8.17,  label: "⏳ At Mom's", type: 'wait' },
-            { start: 8.17,  end: 9.0,   label: '🚌 Bus',      type: 'travel' },
-            { start: 9.0,   end: 15.5,  label: '🏫 School',   type: 'system' },
-            { start: 15.5,  end: 15.75, label: '🚌 Bus',      type: 'travel' },
-            { start: 15.75, end: 16.25, label: '⏳ Wait',     type: 'wait' },
-            { start: 16.25, end: 17.0,  label: '🚗 Home',     type: 'travel' }
-        ],
-        emmet: [
-            { start: 6.83,  end: 7.67,  label: '🚗 Travel',   type: 'travel' },
-            { start: 7.67,  end: 15.0,  label: '🏫 School',   type: 'system' },
-            { start: 15.0,  end: 15.17, label: '🚌 Bus',      type: 'travel' },
-            { start: 15.17, end: 16.25, label: "⏳ At Mom's", type: 'wait' },
-            { start: 16.25, end: 17.0,  label: '🚗 Home',     type: 'travel' }
-        ]
-    };
-
-    // Activity catalog. `type` drives color and category.
-    const ACTIVITIES = [
-        { section: 'Must-Do',     type: 'must-do',     name: 'Homework',   duration: 30 },
-        { section: 'Must-Do',     type: 'must-do',     name: 'Reading',    duration: 20 },
-        { section: 'Must-Do',     type: 'must-do',     name: 'Instrument', duration: 20 },
-        { section: 'Must-Do',     type: 'must-do',     name: 'Dinner',     duration: 20 },
-        { section: 'Flexible',    type: 'flexible',    name: 'Free Play',  duration: 30 },
-        { section: 'Flexible',    type: 'flexible',    name: 'Snack',      duration: 15 },
-        { section: 'Flexible',    type: 'flexible',    name: 'Wait for Emmet', duration: 15 },
-        { section: 'Flexible',    type: 'flexible',    name: 'Wait for Ollie', duration: 15 },
-        { section: 'Screen Time', type: 'screen-time', name: 'Screen Time', duration: 30 },
-        { section: 'Special',     type: 'special',     name: 'Outside Time', duration: 60 },
-        { section: 'Special',     type: 'special',     name: 'Sports',       duration: 45 }
+    const PERSON_COLORS = [
+        '#667eea', '#e74c3c', '#f39c12', '#27ae60',
+        '#16a085', '#3498db', '#9b59b6', '#e67e22',
+        '#34495e', '#e91e63'
     ];
 
-    // Routines: bundles of sequential activities expanded at drop time.
-    // Each item gets its own user block with source='routine' and the
-    // item's `type` (so a routine's Reading still looks like a must-do).
-    const ROUTINES = {
-        morning: {
-            label: 'Morning Routine',
+    // Activities. Optional fields:
+    //   defaultSubTasks: string[]  -> materialized into subTasks on drop
+    //   howToNote: string          -> shown in the edit modal for reference
+    //
+    // The House catalog and its defaults trace back to Dad's wall-sheet
+    // "How to do it" cards and the master maintenance inventory. Minutes
+    // are taken from those cards, not guessed.
+    const ACTIVITIES = [
+        { section: 'Must-do', type: 'must-do', name: 'Homework',   duration: 30 },
+        { section: 'Must-do', type: 'must-do', name: 'Reading',    duration: 20 },
+        { section: 'Must-do', type: 'must-do', name: 'Instrument', duration: 20 },
+        { section: 'Must-do', type: 'must-do', name: 'Dinner',     duration: 20 },
+
+        { section: 'Flexible', type: 'flexible', name: 'Free Play', duration: 30 },
+        { section: 'Flexible', type: 'flexible', name: 'Snack',     duration: 15 },
+        { section: 'Flexible', type: 'flexible', name: 'Wait',      duration: 15 },
+
+        { section: 'Screen', type: 'screen-time', name: 'Screen Time', duration: 30 },
+
+        { section: 'Special', type: 'special', name: 'Outside Time', duration: 60 },
+        { section: 'Special', type: 'special', name: 'Sports',       duration: 45 },
+        { section: 'Special', type: 'special', name: 'Moving',       duration: 30,
+          howToNote: 'Any 30 minutes of body-moving counts. Walk, bike, sport, dance.' },
+        { section: 'Special', type: 'special', name: 'Making',       duration: 30,
+          howToNote: 'Build, draw, write, cook, code — anything you make counts.' },
+
+        // House catalog — from the wall sheets. Some carry pre-filled
+        // steps you can check off, and a short "how to do it" note.
+        { section: 'House', type: 'must-do', name: 'Clean bathroom', duration: 15,
+          howToNote: 'Done = Nothing on the counter but what lives there, and the mirror has no spots.',
+          defaultSubTasks: [
+            'Clear the counter and tub edge; stray clothes to the hamper',
+            'Cleaner on sink, tub, shower — let it sit',
+            'Bowl cleaner in, brush around, flush; wipe seat and outside',
+            'Wipe sink and tub; mirror with glass cleaner; floor last',
+            'Fresh towel, empty the trash, check the TP'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Vacuum a room', duration: 10,
+          howToNote: 'Done = The whole room, edges included, and the vacuum is away.',
+          defaultSubTasks: [
+            'Pick the floor up first — the vacuum is not a toy sorter',
+            'Move light stuff: chairs out, cords out of the way',
+            'Edges and along baseboards first, then the middle',
+            'Put the vacuum back where it lives'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Kitchen counters + stove', duration: 10,
+          howToNote: 'Done = You could set down a plate anywhere and it would be fine.',
+          defaultSubTasks: [
+            'Everything off the counter goes where it lives',
+            'Crumbs into your hand or the sink; spray + microfiber',
+            'Wipe the stove while it is cool (baking-soda paste for stuck-on)',
+            'Wipe the table, then sweep the floor'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Kitchen floor', duration: 10,
+          howToNote: 'Done = Dry in a few minutes and nothing sticks to your feet.',
+          defaultSubTasks: [
+            'Sweep first, always',
+            'Swiffer WetJet — a little squirt, then pass over',
+            'Work from the far corner back toward the door',
+            'New pad when the current one stops picking anything up'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Mirrors + glass', duration: 5,
+          howToNote: 'Done = No streaks when you look at it from the side.',
+          defaultSubTasks: [
+            'Spray the cloth, not the mirror',
+            'Wipe in one direction, top to bottom',
+            'Second pass with a dry microfiber (kills streaks)',
+            'Get the toothpaste spots at the bottom'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Fold + put away towels', duration: 5,
+          howToNote: 'Done = The basket is empty and the shelf closes.',
+          defaultSubTasks: [
+            'Fold in the room they live in',
+            'Bathroom towels in thirds, then half',
+            'Anything still damp goes back in the dryer',
+            'Empty basket back where it belongs'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Dishwasher (load or empty)', duration: 10,
+          howToNote: 'Done = It runs, and nothing comes out still dirty.',
+          defaultSubTasks: [
+            'Scrape into the trash (rinsing not needed)',
+            'Plates and bowls face the middle; cups upside down',
+            'Knives point down, everything else up',
+            'Nothing blocks the spinning arm — spin it by hand to check'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Trash + recycling', duration: 5,
+          howToNote: 'Done = Every can in the house has a liner in it.',
+          defaultSubTasks: [
+            'Tie the bag before you lift it',
+            'New liner goes in before you leave the room',
+            'Cardboard broken down flat',
+            'Bins to the curb the night before'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Common-area pickup', duration: 15,
+          howToNote: 'Clock ends you, not the room. Whatever you get to counts.' },
+        { section: 'House', type: 'must-do', name: 'Bedroom pickup',      duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Make bed',            duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Put laundry away',    duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Toilets',             duration: 15 },
+        { section: 'House', type: 'must-do', name: 'Tubs + showers',      duration: 20 },
+        { section: 'House', type: 'must-do', name: 'Wipe counters + sinks', duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Vacuum common areas', duration: 30 },
+        { section: 'House', type: 'must-do', name: 'Sweep kitchen',       duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Set out tomorrow’s clothes', duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Pack bag + water bottle', duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Yard pickup',         duration: 20 },
+        { section: 'House', type: 'must-do', name: 'Bring in groceries',  duration: 15 },
+        { section: 'House', type: 'must-do', name: 'House time (30)',     duration: 30,
+          howToNote: 'Pick anything off the House list — your own room and laundry count too. Timer ends you.' }
+    ];
+
+    // Default routines used to seed a new family. Once state has routines,
+    // this constant is only used for the built-in slugs' initial content.
+    const DEFAULT_ROUTINES = {
+        morning: { label: 'Morning', items: [
+            { name: 'Bathroom / Brush Teeth', duration: 10, type: 'must-do' },
+            { name: 'Get Dressed',            duration: 10, type: 'must-do' },
+            { name: 'Breakfast',              duration: 15, type: 'must-do' },
+            { name: 'Pack Bag',               duration: 5,  type: 'must-do' }
+        ]},
+        afterSchool: { label: 'After school reset', items: [
+            { name: 'Snack',      duration: 15, type: 'flexible' },
+            { name: 'Decompress', duration: 20, type: 'flexible' },
+            { name: 'Homework',   duration: 30, type: 'must-do' }
+        ]},
+        bedtime: { label: 'Bedtime', items: [
+            { name: 'Shower / Wash Up',      duration: 15, type: 'must-do' },
+            { name: 'Pajamas / Brush Teeth', duration: 10, type: 'must-do' },
+            { name: 'Reading',               duration: 20, type: 'must-do' }
+        ]},
+        // The wall-sheet "deal": 30 house + 30 reading + 30 moving + 30 making.
+        // Kids drop it, then arrange the four blocks however they want.
+        dailyDeal: { label: 'Daily deal (30/30/30/30)', items: [
+            { name: 'House time (30)', duration: 30, type: 'must-do' },
+            { name: 'Reading',         duration: 30, type: 'must-do' },
+            { name: 'Moving',          duration: 30, type: 'special' },
+            { name: 'Making',          duration: 30, type: 'special' }
+        ]}
+    };
+
+    // Family templates — recipes that stamp blocks across MULTIPLE people
+    // at once. Each item names a day, start time, duration, type, and the
+    // people it applies to ('all', 'kids', 'adults', or an id array).
+    // Applied via the panel's "Apply" button, not by dragging (each item
+    // already carries its day, so drag would be ambiguous).
+    const DEFAULT_TEMPLATES = {
+        familyDinner: {
+            label: 'Family dinner (weeknights)',
             items: [
-                { name: 'Bathroom / Brush Teeth', duration: 10, type: 'must-do' },
-                { name: 'Get Dressed',            duration: 10, type: 'must-do' },
-                { name: 'Breakfast',              duration: 15, type: 'must-do' },
-                { name: 'Pack Bag',               duration: 5,  type: 'must-do' }
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 0, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 1, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 2, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 3, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 4, start: 18.0, targets: 'all' }
             ]
         },
-        afterSchool: {
-            label: 'After School Reset',
+        thursdayReset: {
+            label: 'Thursday reset',
             items: [
-                { name: 'Snack',      duration: 15, type: 'flexible' },
-                { name: 'Decompress', duration: 20, type: 'flexible' },
-                { name: 'Homework',   duration: 30, type: 'must-do' }
+                { name: 'Whole-house reset', type: 'must-do', duration: 20, day: 3, start: 19.0, targets: 'all' }
             ]
         },
-        bedtime: {
-            label: 'Bedtime Routine',
+        weeklyRhythm: {
+            label: 'Weekly rhythm (wall sheet)',
             items: [
-                { name: 'Shower / Wash Up',      duration: 15, type: 'must-do' },
-                { name: 'Pajamas / Brush Teeth', duration: 10, type: 'must-do' },
-                { name: 'Reading',               duration: 20, type: 'must-do' }
+                { name: 'Kitchen day',           type: 'must-do', duration: 30, day: 0, start: 17.0, targets: 'all' },
+                { name: 'Bedrooms + laundry',    type: 'must-do', duration: 30, day: 1, start: 17.0, targets: 'all' },
+                { name: 'Bathrooms',             type: 'must-do', duration: 30, day: 2, start: 17.0, targets: 'all' },
+                { name: 'Living + office reset', type: 'must-do', duration: 20, day: 3, start: 19.0, targets: 'all' },
+                { name: 'Basement',              type: 'must-do', duration: 30, day: 4, start: 17.0, targets: 'all' },
+                { name: 'Exterior + repairs',    type: 'must-do', duration: 60, day: 5, start: 10.0, targets: 'all' },
+                { name: 'Whole-house reset',     type: 'must-do', duration: 45, day: 6, start: 16.0, targets: 'all' }
             ]
         }
     };
 
+    const SEED_OLLIE_ANCHORS = [
+        { label: 'Travel',    start: 6.83,  end: 7.75,  type: 'travel',  days: [0,1,2,3,4] },
+        { label: "At Mom's",  start: 7.75,  end: 8.17,  type: 'wait',    days: [0,1,2,3,4] },
+        { label: 'Bus',       start: 8.17,  end: 9.0,   type: 'travel',  days: [0,1,2,3,4] },
+        { label: 'School',    start: 9.0,   end: 15.5,  type: 'school',  days: [0,1,2,3,4] },
+        { label: 'Bus',       start: 15.5,  end: 15.75, type: 'travel',  days: [0,1,2,3,4] },
+        { label: 'Wait',      start: 15.75, end: 16.25, type: 'wait',    days: [0,1,2,3,4] },
+        { label: 'Home',      start: 16.25, end: 17.0,  type: 'travel',  days: [0,1,2,3,4] }
+    ];
+    const SEED_EMMET_ANCHORS = [
+        { label: 'Travel',    start: 6.83,  end: 7.67,  type: 'travel',  days: [0,1,2,3,4] },
+        { label: 'School',    start: 7.67,  end: 15.0,  type: 'school',  days: [0,1,2,3,4] },
+        { label: 'Bus',       start: 15.0,  end: 15.17, type: 'travel',  days: [0,1,2,3,4] },
+        { label: "At Mom's",  start: 15.17, end: 16.25, type: 'wait',    days: [0,1,2,3,4] },
+        { label: 'Home',      start: 16.25, end: 17.0,  type: 'travel',  days: [0,1,2,3,4] }
+    ];
+
     // =====================================================================
     // STATE
     // =====================================================================
-    // Single source of truth. Mutate via the helpers below, never directly.
-    // Every mutator ends with saveState() + renderApp().
 
     let state = defaultState();
-
-    // dragPayload describes whatever is currently being dragged. Cleared on
-    // dragend or drop.
     let dragPayload = null;
+    let editingBlockGroup = null;
+    let editingBlockSubTasks = [];       // working copy for the edit modal
+    let editingPersonId = null;
+    let editingAnchorId = null;
+    let editingRoutineKey = null;
+    let editingRoutineItems = [];
+    let pendingFirstThen = null;         // { day, afterTime, personId } after a must-do drop
+    let activeTimer = null;              // { blockId, personId, endTs, durationMs }
+    let timerTickInterval = null;
+    let audioCtx = null;                 // lazy — needs a user gesture first
+    let editingTemplateKey = null;
+    let editingTemplateItems = [];
 
     function defaultState() {
+        return sampleFamilyState();
+    }
+
+    function sampleFamilyState() {
+        // Wall-sheet kid times: wind-down 8:30, screens off 9, bed 10.
+        // Adults keep DEFAULT_KEY_TIMES.
+        const kidKeyTimes = { ...DEFAULT_KEY_TIMES,
+            windDown: 20.5, screensOff: 21.0, bedtime: 22.0 };
+        const ollie = makePerson('Ollie', 'kid', '#667eea', '🧒');
+        ollie.keyTimes = { ...kidKeyTimes };
+        ollie.anchors = SEED_OLLIE_ANCHORS.map(withAnchorId);
+        const emmet = makePerson('Emmet', 'kid', '#e74c3c', '🧒');
+        emmet.keyTimes = { ...kidKeyTimes };
+        emmet.anchors = SEED_EMMET_ANCHORS.map(withAnchorId);
+        const parent = makePerson('You', 'adult', '#16a085', '👤');
         return {
             version: SCHEMA_VERSION,
-            currentKid: 'ollie',
+            currentPersonId: ollie.id,
             selectedDay: 0,
-            keyTimes: { ...DEFAULT_KEY_TIMES },
-            schedules: {
-                ollie: { blocks: [] },
-                emmet: { blocks: [] }
-            }
+            view: 'parent',
+            introSeen: false,
+            people: [ollie, emmet, parent],
+            routines: cloneRoutines(DEFAULT_ROUTINES),
+            templates: cloneTemplates(DEFAULT_TEMPLATES)
         };
+    }
+
+    function cloneRoutines(src) {
+        const out = {};
+        for (const [k, r] of Object.entries(src)) {
+            out[k] = { label: r.label, items: r.items.map(i => ({ ...i })) };
+        }
+        return out;
+    }
+
+    function cloneTemplates(src) {
+        const out = {};
+        for (const [k, t] of Object.entries(src)) {
+            out[k] = { label: t.label, items: t.items.map(i => ({ ...i })) };
+        }
+        return out;
+    }
+
+    function makePerson(name, role, color, emoji) {
+        return {
+            id: 'p_' + Math.random().toString(36).slice(2, 8),
+            name, role, color,
+            emoji: emoji || '',
+            keyTimes: { ...DEFAULT_KEY_TIMES },
+            anchors: [],
+            schedule: { blocks: [] }
+        };
+    }
+
+    function withAnchorId(a) {
+        return { id: 'a_' + Math.random().toString(36).slice(2, 8), ...a };
     }
 
     // =====================================================================
@@ -573,56 +1295,156 @@
     function loadState() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return defaultState();
-            const parsed = JSON.parse(raw);
-            return migrateState(parsed);
+            if (raw) return migrateFromV5(JSON.parse(raw));
+            const rawV4 = localStorage.getItem('familyOS.v4');
+            if (rawV4) return migrateFromV4(JSON.parse(rawV4));
+            return defaultState();
         } catch (err) {
-            console.warn('FamilyOS: failed to load state, using defaults.', err);
+            console.warn('FamilyOS: load failed, using defaults.', err);
             return defaultState();
         }
     }
 
     function saveState() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (err) {
-            console.warn('FamilyOS: failed to save state.', err);
-        }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+        catch (err) { console.warn('FamilyOS: save failed.', err); }
     }
 
-    // Drop schedules if the schema version doesn't match — older shapes
-    // didn't have IDs/source, and silently coercing risks data corruption.
-    // Preserve key times, kid, selected day where the shape allows.
-    function migrateState(raw) {
+    // v5.1: schema version 6. v5 and v5.1 share storage key; we upgrade in place.
+    function migrateFromV5(raw) {
         const fresh = defaultState();
-        if (!raw || typeof raw !== 'object') return fresh;
-        if (raw.version === SCHEMA_VERSION && raw.schedules) {
-            return {
-                ...fresh,
-                ...raw,
-                keyTimes: { ...fresh.keyTimes, ...(raw.keyTimes || {}) },
-                schedules: {
-                    ollie: { blocks: (raw.schedules.ollie && raw.schedules.ollie.blocks) || [] },
-                    emmet: { blocks: (raw.schedules.emmet && raw.schedules.emmet.blocks) || [] }
-                }
+        if (!raw || !Array.isArray(raw.people)) {
+            console.warn('FamilyOS: payload shape mismatch — using defaults.');
+            return fresh;
+        }
+        const migrated = {
+            ...fresh, ...raw,
+            people: raw.people.map(normalizePerson),
+            routines: normalizeRoutines(raw.routines),
+            templates: normalizeTemplates(raw.templates)
+        };
+        migrated.version = SCHEMA_VERSION;
+        return migrated;
+    }
+
+    // v5.3: keep whatever templates a user has, but seed the defaults if
+    // they're missing entirely, and add any built-in slug that's missing.
+    // Removing a default keeps it removed.
+    function normalizeTemplates(ts) {
+        if (!ts || typeof ts !== 'object') return cloneTemplates(DEFAULT_TEMPLATES);
+        const out = {};
+        for (const [k, t] of Object.entries(ts)) {
+            if (!t || !Array.isArray(t.items)) continue;
+            out[k] = {
+                label: t.label || 'Template',
+                items: t.items.map(i => ({
+                    name: i.name || 'Block',
+                    type: i.type || 'must-do',
+                    duration: Math.max(5, parseInt(i.duration, 10) || 30),
+                    day: (typeof i.day === 'number' && i.day >= 0 && i.day <= 6) ? i.day : 0,
+                    start: (typeof i.start === 'number') ? i.start : 18,
+                    targets: (typeof i.targets === 'string' || Array.isArray(i.targets)) ? i.targets : 'all'
+                }))
             };
         }
-        console.warn('FamilyOS: schema version mismatch — discarding stored schedules.');
-        if (raw.keyTimes) fresh.keyTimes = { ...fresh.keyTimes, ...raw.keyTimes };
-        if (raw.currentKid) fresh.currentKid = raw.currentKid;
-        if (typeof raw.selectedDay === 'number') fresh.selectedDay = raw.selectedDay;
-        return fresh;
+        if (Object.keys(out).length === 0) return cloneTemplates(DEFAULT_TEMPLATES);
+        return out;
+    }
+
+    function normalizePerson(p) {
+        return {
+            id: p.id || ('p_' + Math.random().toString(36).slice(2, 8)),
+            name: p.name || 'Untitled',
+            role: p.role || 'kid',
+            color: p.color || '#667eea',
+            emoji: p.emoji || '',
+            keyTimes: { ...DEFAULT_KEY_TIMES, ...(p.keyTimes || {}) },
+            anchors: (p.anchors || []).map(a => ({
+                id: a.id || ('a_' + Math.random().toString(36).slice(2, 8)),
+                label: a.label || 'Anchor',
+                start: a.start, end: a.end,
+                type: a.type || 'other',
+                days: Array.isArray(a.days) ? a.days : [0,1,2,3,4]
+            })),
+            schedule: {
+                blocks: (((p.schedule && p.schedule.blocks) || [])).map(normalizeBlock)
+            }
+        };
+    }
+
+    function normalizeBlock(b) {
+        return {
+            ...b,
+            subTasks: Array.isArray(b.subTasks)
+                ? b.subTasks.map(st => ({
+                    id: st.id || ('s_' + Math.random().toString(36).slice(2, 6)),
+                    name: st.name || '',
+                    done: !!st.done
+                }))
+                : []
+        };
+    }
+
+    function normalizeRoutines(rs) {
+        if (!rs || typeof rs !== 'object') return cloneRoutines(DEFAULT_ROUTINES);
+        const out = {};
+        for (const [k, r] of Object.entries(rs)) {
+            if (!r || !Array.isArray(r.items)) continue;
+            out[k] = {
+                label: r.label || 'Routine',
+                items: r.items.map(i => ({
+                    name: i.name || 'Step',
+                    duration: Math.max(5, parseInt(i.duration, 10) || 10),
+                    type: i.type || 'flexible'
+                }))
+            };
+        }
+        if (Object.keys(out).length === 0) return cloneRoutines(DEFAULT_ROUTINES);
+        // v5.2: seed the "Daily deal" routine for v5.1 users who don't have it.
+        // A user who removes it later keeps their choice (won't be re-added).
+        if (!out.dailyDeal && DEFAULT_ROUTINES.dailyDeal) {
+            const src = DEFAULT_ROUTINES.dailyDeal;
+            out.dailyDeal = { label: src.label, items: src.items.map(i => ({ ...i })) };
+        }
+        return out;
+    }
+
+    function migrateFromV4(rawV4) {
+        const kt = rawV4.keyTimes || DEFAULT_KEY_TIMES;
+        const ollie = makePerson('Ollie', 'kid', '#667eea', '🧒');
+        ollie.keyTimes = { ...DEFAULT_KEY_TIMES, ...kt };
+        ollie.anchors = SEED_OLLIE_ANCHORS.map(withAnchorId);
+        if (rawV4.schedules && rawV4.schedules.ollie && Array.isArray(rawV4.schedules.ollie.blocks)) {
+            ollie.schedule.blocks = rawV4.schedules.ollie.blocks.map(normalizeBlock);
+        }
+        const emmet = makePerson('Emmet', 'kid', '#e74c3c', '🧒');
+        emmet.keyTimes = { ...DEFAULT_KEY_TIMES, ...kt };
+        emmet.anchors = SEED_EMMET_ANCHORS.map(withAnchorId);
+        if (rawV4.schedules && rawV4.schedules.emmet && Array.isArray(rawV4.schedules.emmet.blocks)) {
+            emmet.schedule.blocks = rawV4.schedules.emmet.blocks.map(normalizeBlock);
+        }
+        const parent = makePerson('You', 'adult', '#16a085', '👤');
+        return {
+            version: SCHEMA_VERSION,
+            currentPersonId: rawV4.currentKid === 'emmet' ? emmet.id : ollie.id,
+            selectedDay: typeof rawV4.selectedDay === 'number' ? rawV4.selectedDay : 0,
+            view: 'parent',
+            introSeen: true,
+            people: [ollie, emmet, parent],
+            routines: cloneRoutines(DEFAULT_ROUTINES),
+            templates: cloneTemplates(DEFAULT_TEMPLATES)
+        };
     }
 
     function resetAll() {
-        if (!confirm('Reset all schedules, key times, and selections?')) return;
+        if (!confirm('Start fresh? This clears all people, anchors, routines, and schedules.')) return;
         try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         state = defaultState();
         renderApp();
     }
 
     // =====================================================================
-    // TIME / INTERVAL UTILITIES
+    // UTILITIES
     // =====================================================================
 
     function hmToDecimal(hm) {
@@ -630,13 +1452,11 @@
         const [h, m] = hm.split(':').map(n => parseInt(n, 10));
         return h + (m / 60);
     }
-
     function decimalToHm(d) {
         const h = Math.floor(d);
         const m = Math.round((d - h) * 60);
         return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
     }
-
     function format12(d) {
         const h = Math.floor(d);
         const m = Math.round((d - h) * 60);
@@ -644,233 +1464,526 @@
         const display = h > 12 ? h - 12 : (h === 0 ? 12 : h);
         return display + ':' + String(m).padStart(2, '0') + ' ' + period;
     }
-
     function formatHourLabel(h) {
         const period = h >= 12 ? 'PM' : 'AM';
         const display = h > 12 ? h - 12 : (h === 0 ? 12 : h);
         return display + ' ' + period;
     }
-
     function formatMins(m) {
-        const h = Math.floor(m / 60);
-        const r = m % 60;
-        if (h && r) return h + 'h ' + r + 'm';
-        if (h) return h + 'h';
-        return r + 'm';
+        const sign = m < 0 ? '-' : '';
+        const abs = Math.abs(m);
+        const h = Math.floor(abs / 60);
+        const r = abs % 60;
+        if (h && r) return sign + h + 'h ' + r + 'm';
+        if (h) return sign + h + 'h';
+        return sign + r + 'm';
     }
-
     function intervalsOverlap(aStart, aEnd, bStart, bEnd) {
         return aStart < bEnd && bStart < aEnd;
     }
-
-    function snap5(t) {
-        return Math.round(t * 12) / 12;
-    }
-
-    function clampToGrid(t) {
-        return Math.max(6, Math.min(22, t));
-    }
-
-    function genId() {
+    function snap5(t) { return Math.round(t * 12) / 12; }
+    function clampToGrid(t) { return Math.max(6, Math.min(22, t)); }
+    function genBlockId() {
         return 'b_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
     }
-
-    function blockEnd(b) {
-        return b.start + b.duration / 60;
+    function genSubTaskId() { return 's_' + Math.random().toString(36).slice(2, 6); }
+    function blockEnd(b) { return b.start + b.duration / 60; }
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+        }[c]));
+    }
+    function currentPerson() {
+        return state.people.find(p => p.id === state.currentPersonId) || state.people[0];
+    }
+    function todayIndex() {
+        return (new Date().getDay() + 6) % 7;
+    }
+    function currentDecimalHour() {
+        const d = new Date();
+        return d.getHours() + d.getMinutes() / 60;
     }
 
     // =====================================================================
     // VALIDATION
     // =====================================================================
 
-    function overlapsLockedBlock(kid, day, start, end) {
-        // System blocks repeat across all 7 days in this app, so we ignore
-        // `day` and just check against the kid's locked schedule.
-        return SYSTEM_BLOCKS[kid].some(sb =>
-            intervalsOverlap(start, end, sb.start, sb.end)
+    function overlapsAnchor(person, day, start, end) {
+        return person.anchors.some(a =>
+            a.days.includes(day) && intervalsOverlap(start, end, a.start, a.end)
         );
     }
 
     // =====================================================================
     // MUTATORS
     // =====================================================================
-    // These are the ONLY paths that change `state`. Each one calls
-    // saveState() and renderApp() at the end.
 
-    function setKid(kid) {
-        if (kid !== 'ollie' && kid !== 'emmet') return;
-        state.currentKid = kid;
-        saveState();
-        renderApp();
+    function setCurrentPerson(id) {
+        if (!state.people.some(p => p.id === id)) return;
+        state.currentPersonId = id;
+        saveState(); renderApp();
+    }
+
+    function addPerson() {
+        const p = makePerson(uniqueName('Person'), 'kid',
+            PERSON_COLORS[state.people.length % PERSON_COLORS.length], '');
+        state.people.push(p);
+        state.currentPersonId = p.id;
+        saveState(); renderApp();
+        openPersonModal(p.id);
+    }
+
+    function uniqueName(base) {
+        const existing = new Set(state.people.map(p => p.name));
+        if (!existing.has(base)) return base;
+        let i = 2;
+        while (existing.has(base + ' ' + i)) i++;
+        return base + ' ' + i;
+    }
+
+    function savePerson(id, patch) {
+        const p = state.people.find(x => x.id === id);
+        if (!p) return;
+        Object.assign(p, patch);
+        saveState(); renderApp();
+    }
+
+    function removePerson(id) {
+        if (state.people.length <= 1) {
+            alert('At least one person needs to stay on the roster.');
+            return;
+        }
+        state.people = state.people.filter(p => p.id !== id);
+        if (state.currentPersonId === id) {
+            state.currentPersonId = state.people[0].id;
+        }
+        saveState(); renderApp();
+    }
+
+    function setKeyTime(id, decimal) {
+        const p = currentPerson();
+        if (!(id in p.keyTimes)) return;
+        p.keyTimes[id] = decimal;
+        saveState(); renderApp();
+    }
+
+    function addAnchor(patch) {
+        const p = currentPerson();
+        p.anchors.push({
+            id: 'a_' + Math.random().toString(36).slice(2, 8),
+            label: patch.label || 'Anchor',
+            start: patch.start, end: patch.end,
+            type: patch.type || 'other',
+            days: patch.days && patch.days.length ? patch.days : [0,1,2,3,4]
+        });
+        saveState(); renderApp();
+    }
+
+    function saveAnchor(id, patch) {
+        const p = currentPerson();
+        const a = p.anchors.find(x => x.id === id);
+        if (!a) return;
+        Object.assign(a, patch);
+        saveState(); renderApp();
+    }
+
+    function removeAnchor(id) {
+        const p = currentPerson();
+        p.anchors = p.anchors.filter(a => a.id !== id);
+        saveState(); renderApp();
     }
 
     function setSelectedDay(day) {
         const d = parseInt(day, 10);
         if (isNaN(d) || d < 0 || d > 6) return;
         state.selectedDay = d;
-        saveState();
-        renderApp();
+        saveState(); renderApp();
     }
 
-    function setKeyTime(id, decimal) {
-        if (!(id in state.keyTimes)) return;
-        state.keyTimes[id] = decimal;
+    function setView(v) {
+        if (v !== 'parent' && v !== 'kid') return;
+        state.view = v;
+        document.body.classList.toggle('view-kid', v === 'kid');
         saveState();
-        renderApp();
+        document.querySelectorAll('.view-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.view === v);
+        });
     }
 
-    function resetKeyTimes() {
-        state.keyTimes = { ...DEFAULT_KEY_TIMES };
+    function dismissIntro() {
+        state.introSeen = true;
         saveState();
-        renderApp();
+        document.getElementById('introOverlay').hidden = true;
     }
 
     function addUserBlock(partial) {
+        const p = currentPerson();
         const start = clampToGrid(snap5(partial.start));
         const duration = Math.max(5, partial.duration | 0);
         const end = start + duration / 60;
-        const kid = state.currentKid;
 
-        // Hard-block ONLY when the drop would overlap a locked system block.
-        // Everything else (after bedtime, screens-off violation, etc.) is a
-        // soft warning surfaced in the budget panel.
-        if (overlapsLockedBlock(kid, partial.day, start, end)) {
-            alert('That overlaps a locked school/travel block. Try a different time.');
+        if (overlapsAnchor(p, partial.day, start, end)) {
+            alert('That runs into an anchor. Try a different time.');
             return false;
         }
-
+        // If this activity has a template sub-task list, materialize it
+        // into the block's own working copy. Users can edit or clear it.
+        const subTasks = Array.isArray(partial.defaultSubTasks)
+            ? partial.defaultSubTasks.map(name => ({
+                id: genSubTaskId(), name: String(name), done: false
+              }))
+            : [];
         const block = {
-            id: genId(),
-            kid,
+            id: genBlockId(),
+            personId: p.id,
             day: partial.day,
-            start,
-            duration,
+            start, duration,
             name: partial.name,
             type: partial.type,
-            source: partial.source || 'activity'
+            source: partial.source || 'activity',
+            subTasks
         };
-        state.schedules[kid].blocks.push(block);
-        saveState();
-        renderApp();
+        p.schedule.blocks.push(block);
+        saveState(); renderApp();
+
+        // First/Then chaining: after a must-do lands, offer to line up a
+        // desired-activity right after. Dopamine-sandwich support.
+        if (block.type === 'must-do' && partial.source !== 'routine' && !partial.suppressFirstThen) {
+            offerFirstThen({ personId: p.id, day: block.day, afterTime: end });
+        }
         return true;
     }
 
     function dropRoutine(routineKey, day, startTime) {
-        const routine = ROUTINES[routineKey];
+        const routine = state.routines[routineKey];
         if (!routine) return;
-
+        const p = currentPerson();
         let cursor = clampToGrid(snap5(startTime));
-        const kid = state.currentKid;
         let truncated = false;
-
         for (const item of routine.items) {
             const dur = item.duration;
             const end = cursor + dur / 60;
-            if (overlapsLockedBlock(kid, day, cursor, end)) {
-                truncated = true;
-                break;
-            }
-            state.schedules[kid].blocks.push({
-                id: genId(),
-                kid,
+            if (overlapsAnchor(p, day, cursor, end)) { truncated = true; break; }
+            p.schedule.blocks.push({
+                id: genBlockId(),
+                personId: p.id,
                 day,
                 start: cursor,
                 duration: dur,
                 name: item.name,
                 type: item.type,
-                source: 'routine'
+                source: 'routine',
+                subTasks: []
             });
             cursor = end;
         }
-        saveState();
-        renderApp();
-        if (truncated) {
-            alert('Routine was truncated — remaining items would overlap a locked block.');
-        }
+        saveState(); renderApp();
+        if (truncated) alert('Routine stopped short — the next step would run into an anchor.');
     }
 
     function editUserBlock(id, patch) {
-        const blocks = state.schedules[state.currentKid].blocks;
-        const idx = blocks.findIndex(b => b.id === id);
+        const p = currentPerson();
+        const idx = p.schedule.blocks.findIndex(b => b.id === id);
         if (idx < 0) return;
-        const next = { ...blocks[idx] };
+        const next = { ...p.schedule.blocks[idx] };
         if (patch.name !== undefined) next.name = patch.name;
         if (patch.duration !== undefined) next.duration = Math.max(5, patch.duration | 0);
         if (patch.start !== undefined) next.start = clampToGrid(snap5(patch.start));
         if (patch.day !== undefined) next.day = parseInt(patch.day, 10);
-        // type and source are deliberately preserved.
-
+        if (patch.subTasks !== undefined) next.subTasks = patch.subTasks;
         const end = next.start + next.duration / 60;
-        if (overlapsLockedBlock(state.currentKid, next.day, next.start, end)) {
-            alert('Edit would overlap a locked school/travel block. Reverting.');
+        if (overlapsAnchor(p, next.day, next.start, end)) {
+            alert('That change runs into an anchor — leaving as-is.');
             return;
         }
-        blocks[idx] = next;
-        saveState();
-        renderApp();
+        p.schedule.blocks[idx] = next;
+        saveState(); renderApp();
     }
 
     function removeUserBlock(id) {
-        const kid = state.currentKid;
-        state.schedules[kid].blocks = state.schedules[kid].blocks.filter(b => b.id !== id);
-        saveState();
+        const p = currentPerson();
+        p.schedule.blocks = p.schedule.blocks.filter(b => b.id !== id);
+        saveState(); renderApp();
+    }
+
+    function removeUserBlockGroup(ids) {
+        const p = currentPerson();
+        p.schedule.blocks = p.schedule.blocks.filter(b => !ids.includes(b.id));
+        saveState(); renderApp();
+    }
+
+    // =====================================================================
+    // TIMER (tap-to-start countdown on a block)
+    // "The clock ends you, not the task." A single active timer at a time.
+    // Not persisted — if the tab closes the timer just ends. That's the
+    // point: no shame accounting, no streaks, no state to rebuild.
+    // =====================================================================
+
+    function ensureAudio() {
+        if (audioCtx) return audioCtx;
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { audioCtx = null; }
+        return audioCtx;
+    }
+    function playChime() {
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(660, now + 0.18);
+        osc.frequency.setValueAtTime(880, now + 0.36);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now); osc.stop(now + 0.9);
+    }
+    function startBlockTimer(blockId) {
+        const p = currentPerson();
+        const b = p.schedule.blocks.find(x => x.id === blockId);
+        if (!b) return;
+        ensureAudio();                   // unlock on the user gesture
+        if (activeTimer) stopBlockTimer(false);
+        const durationMs = Math.max(1000, b.duration * 60 * 1000);
+        activeTimer = {
+            blockId, personId: p.id,
+            endTs: Date.now() + durationMs,
+            durationMs
+        };
+        if (timerTickInterval) clearInterval(timerTickInterval);
+        timerTickInterval = setInterval(tickTimer, 1000);
         renderApp();
+    }
+    function stopBlockTimer(completed) {
+        if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+        const wasCompleted = !!completed;
+        activeTimer = null;
+        if (wasCompleted) {
+            playChime();
+            // Observational voice — no scolding, no requiring finish.
+            setTimeout(() => alert(
+                'Time is up. If you stopped mid-task, the supplies still go away.'
+            ), 30);
+        }
+        renderApp();
+    }
+    function tickTimer() {
+        if (!activeTimer) return;
+        const remaining = activeTimer.endTs - Date.now();
+        if (remaining <= 0) { stopBlockTimer(true); return; }
+        // Update fill without a full re-render.
+        const fill = document.querySelector('.block-timer-fill');
+        if (fill) {
+            const pct = 100 * (1 - remaining / activeTimer.durationMs);
+            fill.style.width = pct.toFixed(1) + '%';
+        }
     }
 
     function copyDayBlocks(srcDay, targetDays) {
-        const kid = state.currentKid;
-        const src = state.schedules[kid].blocks.filter(b => b.day === srcDay);
-        // Replace target days entirely.
-        state.schedules[kid].blocks = state.schedules[kid].blocks.filter(b =>
+        const p = currentPerson();
+        const src = p.schedule.blocks.filter(b => b.day === srcDay);
+        p.schedule.blocks = p.schedule.blocks.filter(b =>
             !targetDays.includes(b.day) || b.day === srcDay
         );
         for (const td of targetDays) {
             if (td === srcDay) continue;
             for (const b of src) {
-                state.schedules[kid].blocks.push({ ...b, id: genId(), day: td });
+                p.schedule.blocks.push({
+                    ...b, id: genBlockId(), day: td,
+                    subTasks: b.subTasks.map(st => ({ ...st, id: genSubTaskId(), done: false }))
+                });
             }
         }
-        saveState();
-        renderApp();
+        saveState(); renderApp();
     }
 
     function clearDay(day) {
-        const kid = state.currentKid;
-        state.schedules[kid].blocks = state.schedules[kid].blocks.filter(b => b.day !== day);
-        saveState();
-        renderApp();
+        const p = currentPerson();
+        p.schedule.blocks = p.schedule.blocks.filter(b => b.day !== day);
+        saveState(); renderApp();
+    }
+
+    // Family template CRUD + apply
+    // Templates stamp identical blocks across N people at once.
+    function resolveTargets(targets, people) {
+        if (targets === 'all')    return people.map(p => p.id);
+        if (targets === 'kids')   return people.filter(p => p.role === 'kid').map(p => p.id);
+        if (targets === 'adults') return people.filter(p => p.role !== 'kid').map(p => p.id);
+        if (Array.isArray(targets)) return targets.filter(id => people.some(p => p.id === id));
+        return [];
+    }
+
+    function addTemplate() {
+        const key = 't_' + Math.random().toString(36).slice(2, 8);
+        state.templates[key] = { label: 'New template', items: [
+            { name: 'New block', type: 'must-do', duration: 30, day: 0, start: 18.0, targets: 'all' }
+        ]};
+        saveState(); renderApp();
+        openTemplateModal(key);
+    }
+    function saveTemplatePatch(key, patch) {
+        const t = state.templates[key];
+        if (!t) return;
+        if (patch.label !== undefined) t.label = patch.label;
+        if (patch.items !== undefined) t.items = patch.items;
+        saveState(); renderApp();
+    }
+    function removeTemplate(key) {
+        delete state.templates[key];
+        saveState(); renderApp();
+    }
+    function applyTemplate(key) {
+        const tpl = state.templates[key];
+        if (!tpl) return;
+        let added = 0;
+        const skipped = [];
+        tpl.items.forEach(item => {
+            const targetIds = resolveTargets(item.targets, state.people);
+            targetIds.forEach(pid => {
+                const person = state.people.find(p => p.id === pid);
+                if (!person) return;
+                const start = clampToGrid(snap5(item.start));
+                const end = start + item.duration / 60;
+                if (overlapsAnchor(person, item.day, start, end)) {
+                    skipped.push(`${person.name} · ${DAYS_SHORT[item.day]} ${format12(start)} · ${item.name}`);
+                    return;
+                }
+                person.schedule.blocks.push({
+                    id: genBlockId(),
+                    personId: pid,
+                    day: item.day,
+                    start, duration: item.duration,
+                    name: item.name,
+                    type: item.type,
+                    source: 'template',
+                    subTasks: []
+                });
+                added++;
+            });
+        });
+        saveState(); renderApp();
+        let msg = `Placed ${added} block${added===1?'':'s'} across the family.`;
+        if (skipped.length) {
+            msg += `\n\nSkipped ${skipped.length} that would run into an anchor:\n• `
+                + skipped.slice(0, 6).join('\n• ');
+            if (skipped.length > 6) msg += `\n• …and ${skipped.length - 6} more.`;
+        }
+        alert(msg);
+    }
+
+    // Routine CRUD
+    function addRoutine() {
+        const key = 'r_' + Math.random().toString(36).slice(2, 8);
+        state.routines[key] = { label: 'New routine', items: [
+            { name: 'Step 1', duration: 10, type: 'flexible' }
+        ]};
+        saveState(); renderApp();
+        openRoutineModal(key);
+    }
+    function saveRoutine(key, patch) {
+        const r = state.routines[key];
+        if (!r) return;
+        if (patch.label !== undefined) r.label = patch.label;
+        if (patch.items !== undefined) r.items = patch.items;
+        saveState(); renderApp();
+    }
+    function removeRoutine(key) {
+        delete state.routines[key];
+        saveState(); renderApp();
+    }
+
+    // =====================================================================
+    // MERGE: contiguous same-name/same-type user blocks visually merge.
+    // =====================================================================
+
+    function mergeAdjacent(blocks) {
+        const sorted = [...blocks].sort((a, b) => a.day - b.day || a.start - b.start);
+        const groups = [];
+        let curr = null;
+        for (const b of sorted) {
+            const nextStartOfCurr = curr ? curr.start + curr.totalDuration / 60 : null;
+            if (
+                curr &&
+                curr.day === b.day &&
+                curr.name === b.name &&
+                curr.type === b.type &&
+                Math.abs(nextStartOfCurr - b.start) < 0.01
+            ) {
+                curr.totalDuration += b.duration;
+                curr.blockIds.push(b.id);
+                curr.subTaskDone += b.subTasks.filter(st => st.done).length;
+                curr.subTaskTotal += b.subTasks.length;
+            } else {
+                curr = {
+                    day: b.day, start: b.start,
+                    name: b.name, type: b.type, source: b.source,
+                    totalDuration: b.duration,
+                    blockIds: [b.id],
+                    subTaskDone: b.subTasks.filter(st => st.done).length,
+                    subTaskTotal: b.subTasks.length
+                };
+                groups.push(curr);
+            }
+        }
+        return groups;
     }
 
     // =====================================================================
     // RENDER LAYER
     // =====================================================================
-    // Idempotent, full-redraw. Each render function rebuilds its DOM region
-    // from `state`. No listener leaks because we replace nodes wholesale.
 
     function renderApp() {
-        renderKidToggle();
+        document.body.classList.toggle('view-kid', state.view === 'kid');
+        document.querySelectorAll('.view-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.view === state.view);
+        });
+
+        renderPersonChips();
         renderDaySelect();
         renderKeyTimesPanel();
+        renderAnchorsPanel();
         renderActivityBank();
         renderRoutineBank();
+        renderTemplateBank();
         renderCalendar();
         renderBudget();
+        renderCountdownStrip();
         renderPrintHeader();
     }
 
-    function renderKidToggle() {
-        document.querySelectorAll('.kid-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.kid === state.currentKid);
+    function renderPersonChips() {
+        const wrap = document.getElementById('personChips');
+        wrap.innerHTML = '';
+        state.people.forEach(p => {
+            const chip = document.createElement('div');
+            chip.className = 'person-chip' + (p.id === state.currentPersonId ? ' active' : '');
+            chip.style.setProperty('--chip-color', p.color);
+            chip.innerHTML = `
+                ${p.emoji ? `<span class="emoji">${escapeHtml(p.emoji)}</span>` : ''}
+                <span>${escapeHtml(p.name)}</span>
+                <span class="edit-marker" title="Edit person">✎</span>
+            `;
+            chip.addEventListener('click', e => {
+                if (e.target.classList.contains('edit-marker')) openPersonModal(p.id);
+                else setCurrentPerson(p.id);
+            });
+            wrap.appendChild(chip);
         });
+        const add = document.createElement('button');
+        add.className = 'person-add-chip';
+        add.textContent = '+ Add person';
+        add.addEventListener('click', addPerson);
+        wrap.appendChild(add);
     }
 
     function renderDaySelect() {
         const sel = document.getElementById('daySelect');
         sel.innerHTML = '';
-        DAYS.forEach((d, i) => {
+        DAYS_SHORT.forEach((d, i) => {
             const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = d;
+            opt.value = i; opt.textContent = d;
             if (i === state.selectedDay) opt.selected = true;
             sel.appendChild(opt);
         });
@@ -879,6 +1992,7 @@
     function renderKeyTimesPanel() {
         const grid = document.getElementById('keyTimesGrid');
         grid.innerHTML = '';
+        const p = currentPerson();
         KEY_TIME_DEFS.forEach(def => {
             const label = document.createElement('label');
             label.textContent = def.label;
@@ -886,12 +2000,39 @@
             const input = document.createElement('input');
             input.type = 'time';
             input.id = 'kt_' + def.id;
-            input.value = decimalToHm(state.keyTimes[def.id]);
-            input.addEventListener('change', () => {
-                setKeyTime(def.id, hmToDecimal(input.value));
-            });
+            input.value = decimalToHm(p.keyTimes[def.id]);
+            input.addEventListener('change', () => setKeyTime(def.id, hmToDecimal(input.value)));
             grid.appendChild(label);
             grid.appendChild(input);
+        });
+    }
+
+    function renderAnchorsPanel() {
+        const list = document.getElementById('anchorList');
+        list.innerHTML = '';
+        const p = currentPerson();
+        if (p.anchors.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'anchor-empty';
+            empty.textContent = 'No anchors yet. Add one to lock in school, work, or appointments.';
+            list.appendChild(empty);
+            return;
+        }
+        p.anchors.forEach(a => {
+            const item = document.createElement('div');
+            item.className = 'anchor-item ' + a.type;
+            const daysStr = a.days.length === 7 ? 'every day'
+                : a.days.length === 5 && [0,1,2,3,4].every(d => a.days.includes(d)) ? 'weekdays'
+                : a.days.length === 2 && [5,6].every(d => a.days.includes(d)) ? 'weekends'
+                : a.days.map(d => DAYS_LETTER[d]).join('');
+            item.innerHTML = `
+                <div>
+                    <div class="anchor-label">${escapeHtml(a.label)}</div>
+                    <div class="anchor-meta">${format12(a.start)} – ${format12(a.end)} · ${daysStr}</div>
+                </div>
+            `;
+            item.addEventListener('click', () => openAnchorModal(a.id));
+            list.appendChild(item);
         });
     }
 
@@ -899,9 +2040,7 @@
         const bank = document.getElementById('activityBank');
         bank.innerHTML = '';
         const sections = {};
-        ACTIVITIES.forEach(a => {
-            (sections[a.section] = sections[a.section] || []).push(a);
-        });
+        ACTIVITIES.forEach(a => { (sections[a.section] = sections[a.section] || []).push(a); });
         for (const sectionName of Object.keys(sections)) {
             const wrap = document.createElement('div');
             wrap.className = 'activity-section';
@@ -917,18 +2056,18 @@
                     <span class="activity-name">${escapeHtml(a.name)}</span>
                     <span class="activity-duration">${a.duration}m</span>
                 `;
-                card.addEventListener('dragstart', e => {
+                card.addEventListener('dragstart', () => {
                     dragPayload = {
                         kind: 'activity',
                         type: a.type,
                         name: a.name,
-                        duration: a.duration
+                        duration: a.duration,
+                        defaultSubTasks: a.defaultSubTasks || null
                     };
                     card.style.opacity = '0.5';
                 });
                 card.addEventListener('dragend', () => {
-                    card.style.opacity = '1';
-                    dragPayload = null;
+                    card.style.opacity = '1'; dragPayload = null;
                 });
                 wrap.appendChild(card);
             });
@@ -939,26 +2078,67 @@
     function renderRoutineBank() {
         const bank = document.getElementById('routineBank');
         bank.innerHTML = '';
-        Object.entries(ROUTINES).forEach(([key, routine]) => {
+        Object.entries(state.routines).forEach(([key, routine]) => {
             const total = routine.items.reduce((s, i) => s + i.duration, 0);
             const card = document.createElement('div');
             card.className = 'routine-card';
             card.draggable = true;
             card.innerHTML = `
-                <div>
+                <div style="flex:1;">
                     <div class="activity-name">${escapeHtml(routine.label)}</div>
-                    <div class="routine-meta">${routine.items.length} blocks</div>
+                    <div class="routine-meta">${routine.items.length} steps · ${total}m</div>
                 </div>
-                <span class="activity-duration">${total}m</span>
+                <span class="edit-marker" title="Edit routine">✎</span>
             `;
             card.addEventListener('dragstart', () => {
                 dragPayload = { kind: 'routine', routineKey: key };
                 card.style.opacity = '0.5';
             });
             card.addEventListener('dragend', () => {
-                card.style.opacity = '1';
-                dragPayload = null;
+                card.style.opacity = '1'; dragPayload = null;
             });
+            card.addEventListener('click', e => {
+                if (e.target.classList.contains('edit-marker')) {
+                    e.stopPropagation();
+                    openRoutineModal(key);
+                }
+            });
+            bank.appendChild(card);
+        });
+    }
+
+    function renderTemplateBank() {
+        const bank = document.getElementById('templateBank');
+        bank.innerHTML = '';
+        const entries = Object.entries(state.templates || {});
+        if (entries.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'anchor-empty';
+            empty.textContent = 'No templates yet. Add one for shared family blocks (dinner, Thursday reset).';
+            bank.appendChild(empty);
+            return;
+        }
+        entries.forEach(([key, tpl]) => {
+            const uniqueDays = [...new Set(tpl.items.map(i => i.day))].sort();
+            const daysStr = uniqueDays.length === 7 ? 'every day'
+                : uniqueDays.length === 5 && [0,1,2,3,4].every(d => uniqueDays.includes(d)) ? 'weekdays'
+                : uniqueDays.length === 2 && [5,6].every(d => uniqueDays.includes(d)) ? 'weekends'
+                : uniqueDays.map(d => DAYS_LETTER[d]).join('');
+            const card = document.createElement('div');
+            card.className = 'template-card';
+            card.innerHTML = `
+                <div class="template-body">
+                    <div class="activity-name">${escapeHtml(tpl.label)}</div>
+                    <div class="routine-meta">${tpl.items.length} block${tpl.items.length===1?'':'s'} · ${daysStr}</div>
+                </div>
+                <button class="apply-btn" title="Stamp this template across the family">Apply</button>
+                <span class="edit-marker" title="Edit template">✎</span>
+            `;
+            card.querySelector('.apply-btn').addEventListener('click', () => {
+                if (!confirm(`Apply "${tpl.label}"? This places blocks on everyone the template targets.`)) return;
+                applyTemplate(key);
+            });
+            card.querySelector('.edit-marker').addEventListener('click', () => openTemplateModal(key));
             bank.appendChild(card);
         });
     }
@@ -967,30 +2147,28 @@
         const grid = document.getElementById('calendar');
         grid.innerHTML = '';
 
-        // Corner + day headers
         const corner = document.createElement('div');
         corner.className = 'corner-cell';
-        corner.style.gridRow = '1';
-        corner.style.gridColumn = '1';
         grid.appendChild(corner);
 
-        DAYS.forEach((day, dayIdx) => {
+        const today = todayIndex();
+        DAYS_SHORT.forEach((day, dayIdx) => {
             const h = document.createElement('div');
-            h.className = 'day-header' + (dayIdx === state.selectedDay ? ' selected' : '');
+            h.className = 'day-header'
+                + (dayIdx === state.selectedDay ? ' selected' : '')
+                + (dayIdx === today ? ' today' : '');
             h.textContent = day;
             h.dataset.day = dayIdx;
             h.addEventListener('click', () => setSelectedDay(dayIdx));
             grid.appendChild(h);
         });
 
-        // Time rows + cells
-        HOURS.forEach((hour, rowIdx) => {
+        HOURS.forEach(hour => {
             const tl = document.createElement('div');
             tl.className = 'time-label';
             tl.textContent = formatHourLabel(hour);
             grid.appendChild(tl);
-
-            DAYS.forEach((_, dayIdx) => {
+            DAYS_SHORT.forEach((_, dayIdx) => {
                 const cell = document.createElement('div');
                 cell.className = 'calendar-cell';
                 if (dayIdx === state.selectedDay) cell.classList.add('selected-day');
@@ -1003,29 +2181,22 @@
             });
         });
 
-        // Per-cell inactive overlays (before wake / after bedtime).
         renderInactiveOverlays();
-
-        // Locked system blocks (per kid).
-        renderSystemBlocks();
-
-        // User blocks.
+        renderTransitionBands();
+        renderAnchorBlocks();
         renderUserBlocks();
-
-        // Key time lines on top of everything.
         renderKeyTimeLines();
+        renderNowLine();
     }
 
-    // Per-cell partial overlays handle partial-hour wake/bed times cleanly.
     function renderInactiveOverlays() {
-        const wake = state.keyTimes.wake;
-        const bed = state.keyTimes.bedtime;
+        const p = currentPerson();
+        const wake = p.keyTimes.wake;
+        const bed = p.keyTimes.bedtime;
         document.querySelectorAll('.calendar-cell').forEach(cell => {
             const h = parseInt(cell.dataset.time, 10);
-            // Before wake
             if (h + 1 <= wake) addOverlay(cell, 0, PX_PER_HOUR);
             else if (h < wake && wake < h + 1) addOverlay(cell, 0, (wake - h) * PX_PER_HOUR);
-            // After bedtime
             if (h >= bed) addOverlay(cell, 0, PX_PER_HOUR);
             else if (h < bed && bed < h + 1) {
                 const top = (bed - h) * PX_PER_HOUR;
@@ -1033,7 +2204,6 @@
             }
         });
     }
-
     function addOverlay(cell, top, height) {
         const o = document.createElement('div');
         o.className = 'inactive-overlay';
@@ -1042,74 +2212,159 @@
         cell.appendChild(o);
     }
 
-    function renderSystemBlocks() {
-        const blocks = SYSTEM_BLOCKS[state.currentKid];
-        DAYS.forEach((_, dayIdx) => {
-            blocks.forEach(b => addLockedBlockToGrid(dayIdx, b));
+    // Transition band: a 10-min visual runway (stripe) before every anchor
+    // start. Silent get-ready cue, no text — softens abrupt transitions.
+    function renderTransitionBands() {
+        const p = currentPerson();
+        const bandHours = TRANSITION_MIN / 60;
+        DAYS_SHORT.forEach((_, dayIdx) => {
+            p.anchors.forEach(a => {
+                if (!a.days.includes(dayIdx)) return;
+                const bandStart = Math.max(6, a.start - bandHours);
+                const bandEnd = a.start;
+                if (bandEnd <= bandStart) return;
+                const startHour = Math.floor(bandStart);
+                const endHour = Math.floor(bandEnd - 0.0001);
+                for (let h = startHour; h <= endHour; h++) {
+                    const cell = document.querySelector(
+                        `.calendar-cell[data-day="${dayIdx}"][data-time="${h}"]`
+                    );
+                    if (!cell) continue;
+                    const segStart = h === startHour ? bandStart : h;
+                    const segEnd = h === endHour ? bandEnd : h + 1;
+                    const el = document.createElement('div');
+                    el.className = 'transition-band';
+                    el.style.top = ((segStart - h) * PX_PER_HOUR) + 'px';
+                    el.style.height = ((segEnd - segStart) * PX_PER_HOUR) + 'px';
+                    cell.appendChild(el);
+                }
+            });
         });
     }
 
-    function addLockedBlockToGrid(dayIdx, b) {
-        const startHour = Math.floor(b.start);
-        const endHour = Math.floor(b.end - 0.0001);
-        for (let h = startHour; h <= endHour; h++) {
-            const cell = document.querySelector(
-                `.calendar-cell[data-day="${dayIdx}"][data-time="${h}"]`
-            );
-            if (!cell) continue;
-            const segStart = h === startHour ? b.start : h;
-            const segEnd = h === endHour ? b.end : h + 1;
-            const dur = (segEnd - segStart) * 60;
-            if (dur <= 0) continue;
-            const el = document.createElement('div');
-            el.className = 'placed-block locked ' + b.type;
-            el.style.top = ((segStart - h) * PX_PER_HOUR) + 'px';
-            el.style.height = dur + 'px';
-            el.textContent = b.label;
-            el.title = `${b.label}\n${format12(b.start)} – ${format12(b.end)} (locked)`;
-            cell.appendChild(el);
-        }
+    function renderAnchorBlocks() {
+        const p = currentPerson();
+        DAYS_SHORT.forEach((_, dayIdx) => {
+            p.anchors.forEach(a => {
+                if (!a.days.includes(dayIdx)) return;
+                renderAnchorSegment(dayIdx, a);
+            });
+        });
+    }
+
+    // Render each anchor as a SINGLE full-height block in its start-hour
+    // cell, not one segment per hour. Cells have overflow:visible so a
+    // multi-hour anchor cleanly extends downward as one visual card.
+    function renderAnchorSegment(dayIdx, a) {
+        const startHour = Math.floor(a.start);
+        const cell = document.querySelector(
+            `.calendar-cell[data-day="${dayIdx}"][data-time="${startHour}"]`
+        );
+        if (!cell) return;
+        const dur = (a.end - a.start) * 60;
+        if (dur <= 0) return;
+        const el = document.createElement('div');
+        el.className = 'placed-block anchor ' + a.type;
+        el.style.top = ((a.start - startHour) * PX_PER_HOUR) + 'px';
+        el.style.height = dur + 'px';
+        el.textContent = a.label;
+        el.title = `${a.label}\n${format12(a.start)} – ${format12(a.end)} (anchor)`;
+        cell.appendChild(el);
     }
 
     function renderUserBlocks() {
-        const blocks = state.schedules[state.currentKid].blocks;
-        blocks.forEach(b => {
-            const startHour = Math.floor(b.start);
+        const p = currentPerson();
+        const groups = mergeAdjacent(p.schedule.blocks);
+        groups.forEach(g => {
+            const startHour = Math.floor(g.start);
             const cell = document.querySelector(
-                `.calendar-cell[data-day="${b.day}"][data-time="${startHour}"]`
+                `.calendar-cell[data-day="${g.day}"][data-time="${startHour}"]`
             );
             if (!cell) return;
             const el = document.createElement('div');
-            el.className = 'placed-block user ' + b.type;
-            el.dataset.id = b.id;
-            el.style.top = ((b.start - startHour) * PX_PER_HOUR) + 'px';
-            el.style.height = b.duration + 'px';
-            el.title = `${b.name}\n${format12(b.start)} – ${format12(blockEnd(b))} (${b.duration}m)\nClick to edit`;
+            el.className = 'placed-block user ' + g.type;
+            el.dataset.groupIds = g.blockIds.join(',');
+            el.style.top = ((g.start - startHour) * PX_PER_HOUR) + 'px';
+            el.style.height = g.totalDuration + 'px';
+            const totalEnd = g.start + g.totalDuration / 60;
+            const titleLines = [
+                `${g.name}`,
+                `${format12(g.start)} – ${format12(totalEnd)} (${g.totalDuration}m)`
+            ];
+            if (g.blockIds.length > 1) titleLines.push(`${g.blockIds.length} merged blocks`);
+            if (g.subTaskTotal > 0) titleLines.push(`${g.subTaskDone}/${g.subTaskTotal} steps done`);
+            titleLines.push('Click to edit');
+            el.title = titleLines.join('\n');
 
             const label = document.createElement('div');
-            label.textContent = b.name;
-            // Hide the time row on very short blocks (< 25m) — too cramped.
+            label.textContent = g.name;
             el.appendChild(label);
-            if (b.duration >= 25) {
+            if (g.totalDuration >= 25) {
                 const time = document.createElement('div');
                 time.style.fontSize = '0.85em';
                 time.style.opacity = '0.85';
-                time.textContent = format12(b.start);
+                time.textContent = format12(g.start);
                 el.appendChild(time);
             }
+            if (g.subTaskTotal > 0) {
+                const st = document.createElement('span');
+                st.className = 'subtask-progress';
+                st.textContent = g.subTaskDone + '/' + g.subTaskTotal;
+                el.appendChild(st);
+            }
+            if (g.blockIds.length > 1) {
+                const badge = document.createElement('span');
+                badge.className = 'merge-count';
+                badge.textContent = '×' + g.blockIds.length;
+                el.appendChild(badge);
+            }
+            // Tap-to-start timer button. Uses the FIRST block's id — the
+            // active timer lives against that id, and the merged group
+            // still shows the fill on the same visual card.
+            const firstId = g.blockIds[0];
+            const isActive = activeTimer && activeTimer.blockId === firstId;
+            const timerBtn = document.createElement('button');
+            timerBtn.className = 'timer-btn' + (isActive ? ' active' : '');
+            timerBtn.textContent = isActive ? '⏹' : '⏱';
+            timerBtn.title = isActive
+                ? 'Stop the timer'
+                : 'Start a ' + g.totalDuration + 'm timer';
+            timerBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                if (isActive) stopBlockTimer(false);
+                else startBlockTimer(firstId);
+            });
+            el.appendChild(timerBtn);
 
             const remove = document.createElement('button');
             remove.className = 'block-remove';
             remove.textContent = '×';
-            remove.title = 'Remove';
+            remove.title = g.blockIds.length > 1 ? 'Remove all merged blocks' : 'Remove';
             remove.addEventListener('click', e => {
                 e.stopPropagation();
-                removeUserBlock(b.id);
+                if (g.blockIds.length > 1) {
+                    if (!confirm(`Remove all ${g.blockIds.length} merged blocks?`)) return;
+                    removeUserBlockGroup(g.blockIds);
+                } else {
+                    removeUserBlock(g.blockIds[0]);
+                }
             });
             el.appendChild(remove);
 
-            el.addEventListener('click', () => openEditModal(b.id));
+            // Active-timer progress fill sits on the block.
+            if (isActive) {
+                const bar = document.createElement('div');
+                bar.className = 'block-timer';
+                const fill = document.createElement('div');
+                fill.className = 'block-timer-fill';
+                const remaining = activeTimer.endTs - Date.now();
+                const pct = 100 * (1 - remaining / activeTimer.durationMs);
+                fill.style.width = Math.max(0, Math.min(100, pct)).toFixed(1) + '%';
+                bar.appendChild(fill);
+                el.appendChild(bar);
+            }
 
+            el.addEventListener('click', () => openEditModal(g));
             cell.appendChild(el);
         });
     }
@@ -1117,10 +2372,11 @@
     function renderKeyTimeLines() {
         const container = document.querySelector('.calendar-container');
         container.querySelectorAll('.key-time-line').forEach(el => el.remove());
+        const p = currentPerson();
         KEY_TIME_DEFS.forEach(def => {
-            const t = state.keyTimes[def.id];
+            const t = p.keyTimes[def.id];
             if (t < 6 || t > 22) return;
-            const top = HEADER_PX + (t - 6) * PX_PER_HOUR + 12; // +12 for container padding
+            const top = HEADER_PX + (t - 6) * PX_PER_HOUR + 12;
             const line = document.createElement('div');
             line.className = 'key-time-line ' + def.id;
             line.style.top = top + 'px';
@@ -1132,93 +2388,212 @@
         });
     }
 
-    // =====================================================================
-    // BUDGET + WARNINGS
-    // =====================================================================
+    function renderNowLine() {
+        const container = document.querySelector('.calendar-container');
+        container.querySelectorAll('.now-line').forEach(el => el.remove());
+        const today = todayIndex();
+        const now = currentDecimalHour();
+        if (now < 6 || now > 22) return;
+        const cell = document.querySelector(
+            `.calendar-cell[data-day="${today}"][data-time="${Math.floor(now)}"]`
+        );
+        if (!cell) return;
+        const rect = cell.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const line = document.createElement('div');
+        line.className = 'now-line';
+        line.style.left = (rect.left - containerRect.left + container.scrollLeft) + 'px';
+        line.style.width = rect.width + 'px';
+        const topInCell = (now - Math.floor(now)) * PX_PER_HOUR;
+        line.style.top = (rect.top - containerRect.top + container.scrollTop + topInCell) + 'px';
+        container.appendChild(line);
+    }
 
-    function computeDayBudget(kid, day) {
-        const wake = state.keyTimes.wake;
-        const bed = state.keyTimes.bedtime;
-        const activeStart = wake;
-        const activeEnd = bed;
-        const activeMin = Math.max(0, (activeEnd - activeStart) * 60);
-
-        // Subtract locked system block time inside the active window.
-        let lockedMin = 0;
-        SYSTEM_BLOCKS[kid].forEach(sb => {
-            const s = Math.max(sb.start, activeStart);
-            const e = Math.min(sb.end, activeEnd);
-            if (e > s) lockedMin += (e - s) * 60;
+    // Countdown chips: show upcoming key times today with live minutes-until.
+    // Externalizes transitions so kids (or ADHD-lifespan adults) can plan
+    // without having to hold time in working memory.
+    function renderCountdownStrip() {
+        const strip = document.getElementById('countdownStrip');
+        strip.innerHTML = '';
+        const p = currentPerson();
+        const now = currentDecimalHour();
+        const upcoming = KEY_TIME_DEFS
+            .map(def => ({ ...def, t: p.keyTimes[def.id] }))
+            .filter(x => x.t > now)
+            .sort((a, b) => a.t - b.t)
+            .slice(0, 3);
+        if (upcoming.length === 0) {
+            const chip = document.createElement('div');
+            chip.className = 'countdown-chip';
+            chip.innerHTML = '<span class="cd-dot"></span><span class="cd-label">Day complete</span>';
+            strip.appendChild(chip);
+            return;
+        }
+        upcoming.forEach(x => {
+            const mins = Math.round((x.t - now) * 60);
+            const chip = document.createElement('div');
+            chip.className = 'countdown-chip';
+            if (mins <= 10) chip.classList.add('now');
+            else if (mins <= 30) chip.classList.add('soon');
+            chip.innerHTML = `
+                <span class="cd-dot"></span>
+                <span class="cd-label">${escapeHtml(x.label)} in</span>
+                <span class="cd-time">${formatMins(mins)}</span>
+            `;
+            strip.appendChild(chip);
         });
+    }
 
-        const availableMin = Math.max(0, activeMin - lockedMin);
+    // =====================================================================
+    // DAILY DEAL 30/30/30/30 — bucket a block into House / Reading /
+    // Moving / Making. Used both for the sidebar progress bars and for
+    // the "no reading" style notices.
+    // =====================================================================
 
-        const userBlocks = state.schedules[kid].blocks.filter(b => b.day === day);
+    const HOUSE_ACTIVITY_NAMES = new Set(
+        ACTIVITIES.filter(a => a.section === 'House').map(a => a.name)
+    );
+    const MOVING_NAMES = new Set(['Moving', 'Sports', 'Outside Time']);
+    const MAKING_NAMES = new Set(['Making', 'Instrument']);
+
+    function bucketOf(name) {
+        if (!name) return null;
+        if (HOUSE_ACTIVITY_NAMES.has(name)) return 'House';
+        if (name.toLowerCase().includes('reading')) return 'Reading';
+        if (MOVING_NAMES.has(name)) return 'Moving';
+        if (MAKING_NAMES.has(name)) return 'Making';
+        return null;
+    }
+
+    function computeDealProgress(person, day) {
+        const totals = { House: 0, Reading: 0, Moving: 0, Making: 0 };
+        person.schedule.blocks.filter(b => b.day === day).forEach(b => {
+            const bucket = bucketOf(b.name);
+            if (bucket) totals[bucket] += b.duration;
+        });
+        return totals;
+    }
+
+    function renderDealBar() {
+        const el = document.getElementById('dealBar');
+        if (!el) return;
+        const p = currentPerson();
+        const totals = computeDealProgress(p, state.selectedDay);
+        el.innerHTML = '';
+        ['House', 'Reading', 'Moving', 'Making'].forEach(k => {
+            const target = 30;
+            const done = totals[k];
+            const pct = Math.min(100, Math.round(done / target * 100));
+            const isFull = done >= target;
+            const row = document.createElement('div');
+            row.className = 'deal-row';
+            row.innerHTML = `
+                <span class="deal-label">${k}</span>
+                <div class="deal-track">
+                    <div class="deal-fill ${isFull ? 'full' : ''}" style="width:${pct}%"></div>
+                </div>
+                <span class="deal-val ${isFull ? 'full' : ''}">${done}/${target}m</span>
+            `;
+            el.appendChild(row);
+        });
+    }
+
+    // =====================================================================
+    // BUDGET + NOTICES
+    // =====================================================================
+
+    function computeDayBudget(person, day) {
+        const wake = person.keyTimes.wake;
+        const bed = person.keyTimes.bedtime;
+        const activeMin = Math.max(0, (bed - wake) * 60);
+        let anchorMin = 0;
+        person.anchors.forEach(a => {
+            if (!a.days.includes(day)) return;
+            const s = Math.max(a.start, wake);
+            const e = Math.min(a.end, bed);
+            if (e > s) anchorMin += (e - s) * 60;
+        });
+        const availableMin = Math.max(0, activeMin - anchorMin);
+        const userBlocks = person.schedule.blocks.filter(b => b.day === day);
         const allocatedMin = userBlocks.reduce((s, b) => s + b.duration, 0);
-        const screenMin = userBlocks.filter(b => b.type === 'screen-time')
-            .reduce((s, b) => s + b.duration, 0);
-        const mustDoMin = userBlocks.filter(b => b.type === 'must-do')
-            .reduce((s, b) => s + b.duration, 0);
-
+        const screenMin = userBlocks.filter(b => b.type === 'screen-time').reduce((s, b) => s + b.duration, 0);
+        const mustDoMin = userBlocks.filter(b => b.type === 'must-do').reduce((s, b) => s + b.duration, 0);
         return {
-            availableMin,
-            allocatedMin,
+            availableMin, allocatedMin,
             remainingMin: availableMin - allocatedMin,
-            screenMin,
-            mustDoMin,
-            userBlocks
+            screenMin, mustDoMin, userBlocks
         };
     }
 
-    function computeWarnings(kid, day, budget) {
-        const warnings = [];
-        const wake = state.keyTimes.wake;
-        const bed = state.keyTimes.bedtime;
-        const screensOff = state.keyTimes.screensOff;
+    function computeNotices(person, day, budget) {
+        const notices = [];
+        const wake = person.keyTimes.wake;
+        const bed = person.keyTimes.bedtime;
+        const screensOff = person.keyTimes.screensOff;
 
         if (budget.screenMin > 60) {
-            warnings.push({ level: 'warn',
-                text: `Screen time is ${budget.screenMin}m — over the 60m guideline.` });
+            notices.push({ level: 'soft',
+                text: `You have ${budget.screenMin}m of screens today — that's above the 60m guideline.` });
         }
-
-        const hasReading = budget.userBlocks.some(b =>
-            b.name.toLowerCase().includes('reading'));
+        const hasReading = budget.userBlocks.some(b => b.name.toLowerCase().includes('reading'));
         if (!hasReading) {
-            warnings.push({ level: 'warn', text: 'No reading scheduled today.' });
+            notices.push({ level: 'soft', text: 'No reading placed today.' });
         }
-
+        // Homework-first support: on school days, flag when homework isn't
+        // placed and when screens are lined up before homework.
+        const hwBlocks = budget.userBlocks.filter(b =>
+            b.name.toLowerCase().includes('homework'));
+        const isSchoolDay = day >= 0 && day <= 4;
+        if (isSchoolDay && hwBlocks.length === 0) {
+            notices.push({ level: 'soft', text: 'No homework placed yet — schoolwork first.' });
+        }
+        if (hwBlocks.length > 0) {
+            const firstHw = Math.min.apply(null, hwBlocks.map(b => b.start));
+            const screensBeforeHw = budget.userBlocks.filter(b =>
+                b.type === 'screen-time' && b.start < firstHw);
+            if (screensBeforeHw.length > 0) {
+                notices.push({ level: 'soft',
+                    text: 'Screens are placed before homework — worth a look.' });
+            }
+        }
+        // Movement-break notice: any single screen block ≥ 45m is worth a stretch.
+        budget.userBlocks
+            .filter(b => b.type === 'screen-time' && b.duration >= 45)
+            .forEach(b => {
+                notices.push({ level: 'soft',
+                    text: `"${b.name}" is ${b.duration}m — consider a 5m movement break in the middle.` });
+            });
         budget.userBlocks.forEach(b => {
             const end = blockEnd(b);
-            if (overlapsLockedBlock(kid, day, b.start, end)) {
-                warnings.push({ level: 'error',
-                    text: `"${b.name}" overlaps a locked block at ${format12(b.start)}.` });
+            if (overlapsAnchor(person, day, b.start, end)) {
+                notices.push({ level: 'firm',
+                    text: `"${b.name}" runs into an anchor at ${format12(b.start)}.` });
             }
             if (b.start < wake) {
-                warnings.push({ level: 'warn',
+                notices.push({ level: 'soft',
                     text: `"${b.name}" starts before wake (${format12(b.start)}).` });
             }
             if (end > bed) {
-                warnings.push({ level: 'warn',
-                    text: `"${b.name}" runs past bedtime.` });
+                notices.push({ level: 'soft', text: `"${b.name}" runs past bedtime.` });
             }
             if (b.type === 'screen-time' && end > screensOff) {
-                warnings.push({ level: 'warn',
+                notices.push({ level: 'soft',
                     text: `"${b.name}" runs past Screens Off (${format12(screensOff)}).` });
             }
         });
-
         if (budget.allocatedMin > budget.availableMin) {
-            warnings.push({ level: 'warn',
-                text: `Day is overscheduled by ${budget.allocatedMin - budget.availableMin}m.` });
+            notices.push({ level: 'soft',
+                text: `The day is packed — ${formatMins(budget.allocatedMin - budget.availableMin)} over.` });
         }
-        return warnings;
+        return notices;
     }
 
     function renderBudget() {
-        const kid = state.currentKid;
+        renderDealBar();
+        const p = currentPerson();
         const day = state.selectedDay;
-        const budget = computeDayBudget(kid, day);
-        const warnings = computeWarnings(kid, day, budget);
+        const budget = computeDayBudget(p, day);
+        const notices = computeNotices(p, day, budget);
 
         const box = document.getElementById('budgetBox');
         box.innerHTML = '';
@@ -1227,9 +2602,9 @@
             ['Allocated', formatMins(budget.allocatedMin)],
             ['Remaining', formatMins(budget.remainingMin)],
             ['Screen time', formatMins(budget.screenMin)],
-            ['Must-do', formatMins(budget.mustDoMin)]
+            ['Must-do',   formatMins(budget.mustDoMin)]
         ];
-        rows.forEach(([k, v], i) => {
+        rows.forEach(([k, v]) => {
             const row = document.createElement('div');
             row.className = 'budget-row';
             if (k === 'Remaining' && budget.remainingMin < 0) row.classList.add('over');
@@ -1237,20 +2612,18 @@
             box.appendChild(row);
         });
 
-        const list = document.getElementById('warningList');
+        const list = document.getElementById('noticeList');
         list.innerHTML = '';
-        if (warnings.length === 0) {
+        if (notices.length === 0) {
             const ok = document.createElement('div');
-            ok.style.fontSize = '0.78em';
-            ok.style.color = '#27ae60';
-            ok.style.padding = '4px 0';
-            ok.textContent = 'All clear for ' + DAYS[day] + '.';
+            ok.className = 'notice-ok';
+            ok.textContent = 'Nothing to flag for ' + DAYS_SHORT[day] + '.';
             list.appendChild(ok);
         } else {
-            warnings.forEach(w => {
+            notices.forEach(n => {
                 const el = document.createElement('div');
-                el.className = 'warning ' + w.level;
-                el.textContent = w.text;
+                el.className = 'notice ' + n.level;
+                el.textContent = n.text;
                 list.appendChild(el);
             });
         }
@@ -1262,16 +2635,16 @@
 
     function renderPrintHeader() {
         const el = document.getElementById('printHeader');
-        const name = state.currentKid === 'ollie' ? 'Ollie' : 'Emmet';
-        const kt = state.keyTimes;
+        const p = currentPerson();
         el.innerHTML = `
-            <h2>${name} — Weekly Schedule</h2>
+            <h2>${escapeHtml(p.name)} — Weekly Schedule</h2>
             <div class="meta">
-                Wake ${format12(kt.wake)} ·
-                Leave ${format12(kt.leave)} ·
-                Dinner ${format12(kt.dinner)} ·
-                Screens Off ${format12(kt.screensOff)} ·
-                Bedtime ${format12(kt.bedtime)}
+                Wake ${format12(p.keyTimes.wake)} ·
+                Leave ${format12(p.keyTimes.leave)} ·
+                Dinner ${format12(p.keyTimes.dinner)} ·
+                Wind-down ${format12(p.keyTimes.windDown)} ·
+                Screens Off ${format12(p.keyTimes.screensOff)} ·
+                Bedtime ${format12(p.keyTimes.bedtime)}
             </div>
         `;
     }
@@ -1280,20 +2653,12 @@
     // DRAG / DROP
     // =====================================================================
 
-    function handleDragOver(e) {
-        e.preventDefault();
-        e.currentTarget.classList.add('dropzone');
-    }
-
-    function handleDragLeave(e) {
-        e.currentTarget.classList.remove('dropzone');
-    }
-
+    function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dropzone'); }
+    function handleDragLeave(e) { e.currentTarget.classList.remove('dropzone'); }
     function handleDrop(e) {
         e.preventDefault();
         e.currentTarget.classList.remove('dropzone');
         if (!dragPayload) return;
-
         const cell = e.currentTarget;
         const day = parseInt(cell.dataset.day, 10);
         const hour = parseInt(cell.dataset.time, 10);
@@ -1301,14 +2666,14 @@
         const offsetY = e.clientY - rect.top;
         const fraction = Math.max(0, Math.min(1, offsetY / rect.height));
         const time = hour + fraction;
-
         if (dragPayload.kind === 'activity') {
             addUserBlock({
                 day, start: time,
                 duration: dragPayload.duration,
                 name: dragPayload.name,
                 type: dragPayload.type,
-                source: 'activity'
+                source: 'activity',
+                defaultSubTasks: dragPayload.defaultSubTasks
             });
         } else if (dragPayload.kind === 'routine') {
             dropRoutine(dragPayload.routineKey, day, time);
@@ -1317,110 +2682,558 @@
     }
 
     // =====================================================================
-    // EDIT MODAL
+    // MODALS
     // =====================================================================
 
-    let editingBlockId = null;
-
-    function openEditModal(id) {
-        const b = state.schedules[state.currentKid].blocks.find(x => x.id === id);
-        if (!b) return;
-        editingBlockId = id;
-
-        document.getElementById('editName').value = b.name;
-        document.getElementById('editStart').value = decimalToHm(b.start);
-        document.getElementById('editDuration').value = b.duration;
-
+    function openEditModal(group) {
+        editingBlockGroup = group;
+        const p = currentPerson();
+        const first = p.schedule.blocks.find(b => b.id === group.blockIds[0]);
+        if (!first) return;
+        editingBlockSubTasks = first.subTasks.map(st => ({ ...st }));
+        document.getElementById('editModalTitle').textContent =
+            group.blockIds.length > 1
+                ? `Edit block (1 of ${group.blockIds.length})`
+                : 'Edit block';
+        document.getElementById('editName').value = first.name;
+        document.getElementById('editStart').value = decimalToHm(first.start);
+        document.getElementById('editDuration').value = first.duration;
         const daySel = document.getElementById('editDay');
         daySel.innerHTML = '';
-        DAYS.forEach((d, i) => {
+        DAYS_SHORT.forEach((d, i) => {
             const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = d;
-            if (i === b.day) opt.selected = true;
+            opt.value = i; opt.textContent = d;
+            if (i === first.day) opt.selected = true;
             daySel.appendChild(opt);
         });
-
+        // How-to note, looked up by activity name from the catalog. Silently
+        // absent if this block was custom-named or from a routine step.
+        const catalog = ACTIVITIES.find(a => a.name === first.name);
+        const noteEl = document.getElementById('editHowToNote');
+        if (catalog && catalog.howToNote) {
+            noteEl.textContent = catalog.howToNote;
+            noteEl.hidden = false;
+        } else {
+            noteEl.hidden = true;
+        }
+        renderEditSubTasks();
         document.getElementById('editModal').hidden = false;
     }
 
+    // Sub-task chunking: rendered live in the edit modal. Adding/removing/
+    // toggling mutates the local working copy; only "Save" writes it back.
+    function renderEditSubTasks() {
+        const wrap = document.getElementById('editSubTasks');
+        wrap.innerHTML = '';
+        editingBlockSubTasks.forEach((st, idx) => {
+            const row = document.createElement('div');
+            row.className = 'subtask-row';
+            row.innerHTML = `
+                <input type="checkbox" ${st.done ? 'checked' : ''}>
+                <input type="text" placeholder="Step name" value="${escapeHtml(st.name)}">
+                <button class="rm" title="Remove">×</button>
+            `;
+            const [cb, name, rm] = row.children;
+            cb.addEventListener('change', () => { st.done = cb.checked; });
+            name.addEventListener('input', () => { st.name = name.value; });
+            rm.addEventListener('click', () => {
+                editingBlockSubTasks.splice(idx, 1);
+                renderEditSubTasks();
+            });
+            wrap.appendChild(row);
+        });
+    }
+
     function closeEditModal() {
-        editingBlockId = null;
+        editingBlockGroup = null;
+        editingBlockSubTasks = [];
         document.getElementById('editModal').hidden = true;
     }
 
     function saveEditModal() {
-        if (!editingBlockId) return;
-        editUserBlock(editingBlockId, {
+        if (!editingBlockGroup) return;
+        const cleaned = editingBlockSubTasks
+            .filter(st => st.name.trim())
+            .map(st => ({ id: st.id, name: st.name.trim(), done: !!st.done }));
+        editUserBlock(editingBlockGroup.blockIds[0], {
             name: document.getElementById('editName').value.trim() || 'Untitled',
             start: hmToDecimal(document.getElementById('editStart').value),
             duration: parseInt(document.getElementById('editDuration').value, 10) || 5,
-            day: document.getElementById('editDay').value
+            day: document.getElementById('editDay').value,
+            subTasks: cleaned
         });
         closeEditModal();
     }
 
-    // =====================================================================
-    // EVENT WIRING (one-time, attached at init)
-    // =====================================================================
-
-    function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, c => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
+    function openPersonModal(id) {
+        const p = state.people.find(x => x.id === id);
+        if (!p) return;
+        editingPersonId = id;
+        document.getElementById('personModalTitle').textContent = 'Edit person';
+        document.getElementById('personName').value = p.name;
+        document.getElementById('personEmoji').value = p.emoji || '';
+        document.getElementById('personRole').value = p.role;
+        renderColorSwatches(p.color);
+        document.getElementById('personModal').hidden = false;
     }
+    function renderColorSwatches(selected) {
+        const wrap = document.getElementById('personColors');
+        wrap.innerHTML = '';
+        PERSON_COLORS.forEach(c => {
+            const el = document.createElement('div');
+            el.className = 'swatch' + (c === selected ? ' selected' : '');
+            el.style.background = c;
+            el.dataset.color = c;
+            el.addEventListener('click', () => {
+                wrap.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+                el.classList.add('selected');
+            });
+            wrap.appendChild(el);
+        });
+    }
+    function closePersonModal() {
+        editingPersonId = null;
+        document.getElementById('personModal').hidden = true;
+    }
+    function savePersonModal() {
+        if (!editingPersonId) return;
+        const selectedSwatch = document.querySelector('#personColors .swatch.selected');
+        savePerson(editingPersonId, {
+            name: document.getElementById('personName').value.trim() || 'Untitled',
+            emoji: document.getElementById('personEmoji').value.trim(),
+            role: document.getElementById('personRole').value,
+            color: selectedSwatch ? selectedSwatch.dataset.color : '#667eea'
+        });
+        closePersonModal();
+    }
+    function deletePersonModal() {
+        if (!editingPersonId) return;
+        const p = state.people.find(x => x.id === editingPersonId);
+        if (!p) return;
+        if (!confirm(`Remove ${p.name} from the roster? Their schedule and anchors will be deleted.`)) return;
+        removePerson(editingPersonId);
+        closePersonModal();
+    }
+
+    function openAnchorModal(id) {
+        editingAnchorId = id;
+        const p = currentPerson();
+        const a = id ? p.anchors.find(x => x.id === id) : null;
+        document.getElementById('anchorModalTitle').textContent = a ? 'Edit anchor' : 'New anchor';
+        document.getElementById('anchorLabel').value = a ? a.label : '';
+        document.getElementById('anchorStart').value = decimalToHm(a ? a.start : 9.0);
+        document.getElementById('anchorEnd').value = decimalToHm(a ? a.end : 15.0);
+        document.getElementById('anchorType').value = a ? a.type : (currentPerson().role === 'adult' ? 'work' : 'school');
+        renderDaysCheckboxes(a ? a.days : [0,1,2,3,4]);
+        document.getElementById('anchorDeleteBtn').style.display = a ? '' : 'none';
+        document.getElementById('anchorModal').hidden = false;
+    }
+    function renderDaysCheckboxes(selectedDays) {
+        const wrap = document.getElementById('anchorDays');
+        wrap.innerHTML = '';
+        DAYS_LETTER.forEach((letter, i) => {
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.value = i;
+            input.checked = selectedDays.includes(i);
+            const span = document.createElement('span');
+            span.textContent = letter;
+            label.appendChild(input);
+            label.appendChild(span);
+            wrap.appendChild(label);
+        });
+    }
+    function closeAnchorModal() {
+        editingAnchorId = null;
+        document.getElementById('anchorModal').hidden = true;
+    }
+    function saveAnchorModal() {
+        const days = Array.from(document.querySelectorAll('#anchorDays input:checked'))
+            .map(el => parseInt(el.value, 10));
+        const patch = {
+            label: document.getElementById('anchorLabel').value.trim() || 'Anchor',
+            start: hmToDecimal(document.getElementById('anchorStart').value),
+            end: hmToDecimal(document.getElementById('anchorEnd').value),
+            type: document.getElementById('anchorType').value,
+            days: days.length ? days : [0,1,2,3,4]
+        };
+        if (patch.end <= patch.start) {
+            alert('End time needs to be after start time.');
+            return;
+        }
+        if (editingAnchorId) saveAnchor(editingAnchorId, patch);
+        else addAnchor(patch);
+        closeAnchorModal();
+    }
+    function deleteAnchorModal() {
+        if (!editingAnchorId) return;
+        if (!confirm('Remove this anchor?')) return;
+        removeAnchor(editingAnchorId);
+        closeAnchorModal();
+    }
+
+    // Routine modal — editable list of {name, duration, type} rows.
+    function openRoutineModal(key) {
+        editingRoutineKey = key;
+        const r = state.routines[key];
+        if (!r) return;
+        editingRoutineItems = r.items.map(i => ({ ...i }));
+        document.getElementById('routineModalTitle').textContent = 'Edit routine';
+        document.getElementById('routineName').value = r.label;
+        renderRoutineItems();
+        document.getElementById('routineModal').hidden = false;
+    }
+    function renderRoutineItems() {
+        const wrap = document.getElementById('routineItems');
+        wrap.innerHTML = '';
+        editingRoutineItems.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'routine-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Step name" value="${escapeHtml(item.name)}">
+                <input type="number" min="5" step="5" value="${item.duration}">
+                <select>
+                    <option value="must-do">Must-do</option>
+                    <option value="flexible">Flexible</option>
+                    <option value="screen-time">Screen</option>
+                    <option value="special">Special</option>
+                </select>
+                <button class="rm" title="Remove step">×</button>
+            `;
+            const [name, dur, type, rm] = row.children;
+            type.value = item.type;
+            name.addEventListener('input', () => { item.name = name.value; });
+            dur.addEventListener('input',  () => { item.duration = Math.max(5, parseInt(dur.value, 10) || 5); });
+            type.addEventListener('change',() => { item.type = type.value; });
+            rm.addEventListener('click', () => {
+                editingRoutineItems.splice(idx, 1);
+                renderRoutineItems();
+            });
+            wrap.appendChild(row);
+        });
+    }
+    function closeRoutineModal() {
+        editingRoutineKey = null;
+        editingRoutineItems = [];
+        document.getElementById('routineModal').hidden = true;
+    }
+    function saveRoutineModal() {
+        if (!editingRoutineKey) return;
+        const cleaned = editingRoutineItems
+            .filter(i => i.name.trim())
+            .map(i => ({ name: i.name.trim(), duration: i.duration, type: i.type }));
+        if (cleaned.length === 0) {
+            alert('A routine needs at least one step.');
+            return;
+        }
+        saveRoutine(editingRoutineKey, {
+            label: document.getElementById('routineName').value.trim() || 'Routine',
+            items: cleaned
+        });
+        closeRoutineModal();
+    }
+    function deleteRoutineModal() {
+        if (!editingRoutineKey) return;
+        if (!confirm('Remove this routine?')) return;
+        removeRoutine(editingRoutineKey);
+        closeRoutineModal();
+    }
+
+    // Family template modal — an editable list of {name, day, start,
+    // duration, type, targets} rows. Apply from the sidebar stamps them
+    // across everyone the row targets.
+    function openTemplateModal(key) {
+        editingTemplateKey = key;
+        const t = state.templates[key];
+        if (!t) return;
+        editingTemplateItems = t.items.map(i => ({ ...i }));
+        document.getElementById('templateModalTitle').textContent = 'Edit template';
+        document.getElementById('templateName').value = t.label;
+        renderTemplateItems();
+        document.getElementById('templateModal').hidden = false;
+    }
+    function renderTemplateItems() {
+        const wrap = document.getElementById('templateItems');
+        wrap.innerHTML = '';
+        editingTemplateItems.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'template-item';
+            row.innerHTML = `
+                <button class="rm" title="Remove block">×</button>
+                <div>
+                    <label>Name</label>
+                    <input type="text" class="tpl-name" value="${escapeHtml(item.name)}" placeholder="Block name">
+                </div>
+                <div class="template-item-row">
+                    <div>
+                        <label>Day</label>
+                        <select class="tpl-day"></select>
+                    </div>
+                    <div>
+                        <label>Start</label>
+                        <input type="time" class="tpl-start" value="${decimalToHm(item.start)}">
+                    </div>
+                    <div>
+                        <label>Minutes</label>
+                        <input type="number" class="tpl-duration" min="5" step="5" value="${item.duration}">
+                    </div>
+                </div>
+                <div class="template-item-row two">
+                    <div>
+                        <label>Type</label>
+                        <select class="tpl-type">
+                            <option value="must-do">Must-do</option>
+                            <option value="flexible">Flexible</option>
+                            <option value="screen-time">Screen</option>
+                            <option value="special">Special</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Targets</label>
+                        <select class="tpl-targets">
+                            <option value="all">Everyone</option>
+                            <option value="kids">All kids</option>
+                            <option value="adults">All adults</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            const daySel = row.querySelector('.tpl-day');
+            DAYS_SHORT.forEach((d, i) => {
+                const opt = document.createElement('option');
+                opt.value = i; opt.textContent = d;
+                if (i === item.day) opt.selected = true;
+                daySel.appendChild(opt);
+            });
+            row.querySelector('.tpl-type').value = item.type;
+            row.querySelector('.tpl-targets').value =
+                typeof item.targets === 'string' ? item.targets : 'all';
+            row.querySelector('.tpl-name').addEventListener('input', e => { item.name = e.target.value; });
+            daySel.addEventListener('change', e => { item.day = parseInt(e.target.value, 10); });
+            row.querySelector('.tpl-start').addEventListener('input', e => { item.start = hmToDecimal(e.target.value); });
+            row.querySelector('.tpl-duration').addEventListener('input', e => {
+                item.duration = Math.max(5, parseInt(e.target.value, 10) || 5);
+            });
+            row.querySelector('.tpl-type').addEventListener('change', e => { item.type = e.target.value; });
+            row.querySelector('.tpl-targets').addEventListener('change', e => { item.targets = e.target.value; });
+            row.querySelector('.rm').addEventListener('click', () => {
+                editingTemplateItems.splice(idx, 1);
+                renderTemplateItems();
+            });
+            wrap.appendChild(row);
+        });
+    }
+    function closeTemplateModal() {
+        editingTemplateKey = null;
+        editingTemplateItems = [];
+        document.getElementById('templateModal').hidden = true;
+    }
+    function saveTemplateModal() {
+        if (!editingTemplateKey) return;
+        const cleaned = editingTemplateItems
+            .filter(i => i.name.trim())
+            .map(i => ({
+                name: i.name.trim(),
+                type: i.type,
+                duration: i.duration,
+                day: i.day,
+                start: i.start,
+                targets: i.targets
+            }));
+        if (cleaned.length === 0) {
+            alert('A template needs at least one block.');
+            return;
+        }
+        saveTemplatePatch(editingTemplateKey, {
+            label: document.getElementById('templateName').value.trim() || 'Template',
+            items: cleaned
+        });
+        closeTemplateModal();
+    }
+    function deleteTemplateModal() {
+        if (!editingTemplateKey) return;
+        if (!confirm('Remove this template?')) return;
+        removeTemplate(editingTemplateKey);
+        closeTemplateModal();
+    }
+
+    // First/Then modal: after a must-do drop, offer to line up a "then"
+    // desired-activity right after it — dopamine sandwich made explicit.
+    function offerFirstThen({ personId, day, afterTime }) {
+        pendingFirstThen = { personId, day, afterTime };
+        const p = state.people.find(x => x.id === personId);
+        const body = document.getElementById('firstThenBody');
+        body.textContent = `Nice — a must-do at ${format12(afterTime - 0.01)} is placed. Line up a "then" activity at ${format12(afterTime)}?`;
+        const grid = document.getElementById('firstThenChoices');
+        grid.innerHTML = '';
+        ACTIVITIES.filter(a => a.type !== 'must-do').forEach(a => {
+            const btn = document.createElement('button');
+            btn.className = 'ft-pick ' + a.type;
+            btn.innerHTML = `<span>${escapeHtml(a.name)}</span><span class="activity-duration">${a.duration}m</span>`;
+            btn.addEventListener('click', () => pickFirstThen(a));
+            grid.appendChild(btn);
+        });
+        document.getElementById('firstThenModal').hidden = false;
+    }
+    function pickFirstThen(activity) {
+        if (!pendingFirstThen) return;
+        const { day, afterTime } = pendingFirstThen;
+        pendingFirstThen = null;
+        document.getElementById('firstThenModal').hidden = true;
+        addUserBlock({
+            day, start: afterTime,
+            duration: activity.duration,
+            name: activity.name,
+            type: activity.type,
+            source: 'activity',
+            suppressFirstThen: true
+        });
+    }
+    function skipFirstThen() {
+        pendingFirstThen = null;
+        document.getElementById('firstThenModal').hidden = true;
+    }
+
+    // =====================================================================
+    // INIT + WIRING
+    // =====================================================================
 
     function init() {
         state = loadState();
+        document.body.classList.toggle('view-kid', state.view === 'kid');
 
-        document.querySelectorAll('.kid-btn').forEach(btn => {
-            btn.addEventListener('click', () => setKid(btn.dataset.kid));
+        // Header
+        document.querySelectorAll('.view-btn').forEach(b => {
+            b.addEventListener('click', () => setView(b.dataset.view));
         });
-
-        document.getElementById('daySelect').addEventListener('change', e => {
-            setSelectedDay(e.target.value);
+        document.getElementById('introBtn').addEventListener('click', () => {
+            document.getElementById('introOverlay').hidden = false;
         });
+        document.getElementById('introDismissBtn').addEventListener('click', dismissIntro);
 
-        document.getElementById('resetKeyTimesBtn').addEventListener('click', () => {
-            if (confirm('Reset key times to defaults?')) resetKeyTimes();
-        });
-
+        // Day + resets
+        document.getElementById('daySelect').addEventListener('change', e => setSelectedDay(e.target.value));
         document.getElementById('copyWeekdaysBtn').addEventListener('click', () => {
-            if (!confirm(`Copy ${DAYS[state.selectedDay]} to all weekdays (Mon–Fri)?`)) return;
-            copyDayBlocks(state.selectedDay, [0, 1, 2, 3, 4]);
+            if (!confirm(`Copy ${DAYS_SHORT[state.selectedDay]} to all weekdays (Mon–Fri)?`)) return;
+            copyDayBlocks(state.selectedDay, [0,1,2,3,4]);
         });
         document.getElementById('copyAllBtn').addEventListener('click', () => {
-            if (!confirm(`Copy ${DAYS[state.selectedDay]} to all 7 days?`)) return;
-            copyDayBlocks(state.selectedDay, [0, 1, 2, 3, 4, 5, 6]);
+            if (!confirm(`Copy ${DAYS_SHORT[state.selectedDay]} to all 7 days?`)) return;
+            copyDayBlocks(state.selectedDay, [0,1,2,3,4,5,6]);
         });
         document.getElementById('clearDayBtn').addEventListener('click', () => {
-            if (!confirm(`Clear all blocks on ${DAYS[state.selectedDay]}?`)) return;
+            if (!confirm(`Clear all blocks on ${DAYS_SHORT[state.selectedDay]}?`)) return;
             clearDay(state.selectedDay);
         });
-
         document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+        document.getElementById('addAnchorBtn').addEventListener('click', () => openAnchorModal(null));
+        document.getElementById('addRoutineBtn').addEventListener('click', addRoutine);
 
+        // Edit modal
         document.getElementById('modalCancelBtn').addEventListener('click', closeEditModal);
         document.getElementById('modalSaveBtn').addEventListener('click', saveEditModal);
         document.getElementById('modalDeleteBtn').addEventListener('click', () => {
-            if (editingBlockId && confirm('Delete this block?')) {
-                removeUserBlock(editingBlockId);
-                closeEditModal();
+            if (!editingBlockGroup) return;
+            const ids = editingBlockGroup.blockIds;
+            if (ids.length > 1) {
+                if (!confirm(`Remove all ${ids.length} merged blocks?`)) return;
+                removeUserBlockGroup(ids);
+            } else {
+                if (!confirm('Remove this block?')) return;
+                removeUserBlock(ids[0]);
             }
+            closeEditModal();
         });
         document.getElementById('editModal').addEventListener('click', e => {
             if (e.target.id === 'editModal') closeEditModal();
         });
+        document.getElementById('addSubTaskBtn').addEventListener('click', () => {
+            editingBlockSubTasks.push({ id: genSubTaskId(), name: '', done: false });
+            renderEditSubTasks();
+        });
+
+        // Person modal
+        document.getElementById('personCancelBtn').addEventListener('click', closePersonModal);
+        document.getElementById('personSaveBtn').addEventListener('click', savePersonModal);
+        document.getElementById('personDeleteBtn').addEventListener('click', deletePersonModal);
+        document.getElementById('personModal').addEventListener('click', e => {
+            if (e.target.id === 'personModal') closePersonModal();
+        });
+
+        // Anchor modal
+        document.getElementById('anchorCancelBtn').addEventListener('click', closeAnchorModal);
+        document.getElementById('anchorSaveBtn').addEventListener('click', saveAnchorModal);
+        document.getElementById('anchorDeleteBtn').addEventListener('click', deleteAnchorModal);
+        document.getElementById('anchorModal').addEventListener('click', e => {
+            if (e.target.id === 'anchorModal') closeAnchorModal();
+        });
+
+        // Routine modal
+        document.getElementById('routineCancelBtn').addEventListener('click', closeRoutineModal);
+        document.getElementById('routineSaveBtn').addEventListener('click', saveRoutineModal);
+        document.getElementById('routineDeleteBtn').addEventListener('click', deleteRoutineModal);
+        document.getElementById('addRoutineStepBtn').addEventListener('click', () => {
+            editingRoutineItems.push({ name: '', duration: 10, type: 'flexible' });
+            renderRoutineItems();
+        });
+        document.getElementById('routineModal').addEventListener('click', e => {
+            if (e.target.id === 'routineModal') closeRoutineModal();
+        });
+
+        // Family templates
+        document.getElementById('addTemplateBtn').addEventListener('click', addTemplate);
+        document.getElementById('templateCancelBtn').addEventListener('click', closeTemplateModal);
+        document.getElementById('templateSaveBtn').addEventListener('click', saveTemplateModal);
+        document.getElementById('templateDeleteBtn').addEventListener('click', deleteTemplateModal);
+        document.getElementById('addTemplateItemBtn').addEventListener('click', () => {
+            editingTemplateItems.push({
+                name: '', type: 'must-do', duration: 30,
+                day: 0, start: 18.0, targets: 'all'
+            });
+            renderTemplateItems();
+        });
+        document.getElementById('templateModal').addEventListener('click', e => {
+            if (e.target.id === 'templateModal') closeTemplateModal();
+        });
+
+        // First/Then modal
+        document.getElementById('firstThenSkipBtn').addEventListener('click', skipFirstThen);
+        document.getElementById('firstThenModal').addEventListener('click', e => {
+            if (e.target.id === 'firstThenModal') skipFirstThen();
+        });
+
+        // Keyboard
         document.addEventListener('keydown', e => {
-            if (document.getElementById('editModal').hidden) return;
-            if (e.key === 'Escape') closeEditModal();
-            else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
-                e.preventDefault();
-                saveEditModal();
+            const editOpen = !document.getElementById('editModal').hidden;
+            const personOpen = !document.getElementById('personModal').hidden;
+            const anchorOpen = !document.getElementById('anchorModal').hidden;
+            const routineOpen = !document.getElementById('routineModal').hidden;
+            const templateOpen = !document.getElementById('templateModal').hidden;
+            const ftOpen = !document.getElementById('firstThenModal').hidden;
+            if (e.key === 'Escape') {
+                if (editOpen) closeEditModal();
+                if (personOpen) closePersonModal();
+                if (anchorOpen) closeAnchorModal();
+                if (routineOpen) closeRoutineModal();
+                if (templateOpen) closeTemplateModal();
+                if (ftOpen) skipFirstThen();
+                if (!document.getElementById('introOverlay').hidden) dismissIntro();
+            } else if (e.key === 'Enter' && editOpen && e.target.tagName !== 'BUTTON') {
+                e.preventDefault(); saveEditModal();
             }
         });
 
+        if (!state.introSeen) {
+            document.getElementById('introOverlay').hidden = false;
+        }
+
         renderApp();
+
+        // Live ticks: now-line and countdown strip. Full re-render every
+        // 60s handles both without rebuilding the calendar structure.
+        setInterval(() => { renderNowLine(); renderCountdownStrip(); }, 60 * 1000);
+        window.addEventListener('resize', renderNowLine);
     }
 
     if (document.readyState === 'loading') {
