@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Operating System v5.1</title>
+    <title>Family Operating System v5.2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -411,20 +411,51 @@
             background: rgba(255,255,255,0.35); color: white;
             font-size: 0.7em; padding: 0 5px; border-radius: 8px;
         }
-        .placed-block .merge-count { right: 20px; }
-        .placed-block .subtask-progress { right: 44px; }
+        .placed-block .merge-count { right: 44px; }
+        .placed-block .subtask-progress { right: 68px; }
 
-        .block-remove {
+        .block-remove,
+        .timer-btn {
             position: absolute;
-            top: 1px; right: 2px;
+            top: 1px;
             width: 16px; height: 16px;
             background: rgba(0,0,0,0.35);
             color: white; border: none; border-radius: 50%;
-            font-size: 11px; line-height: 14px;
             cursor: pointer; padding: 0;
             display: flex; align-items: center; justify-content: center;
+            font-size: 10px; line-height: 14px;
         }
-        .block-remove:hover { background: rgba(0,0,0,0.6); }
+        .block-remove { right: 2px; font-size: 11px; }
+        .block-remove:hover, .timer-btn:hover { background: rgba(0,0,0,0.6); }
+        .timer-btn { right: 22px; }
+        .timer-btn.active { background: #e74c3c; }
+
+        /* Tap-to-start countdown: a bar fills across the block over the
+           block's duration. The clock ends you, not the task. */
+        .block-timer {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.18);
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .block-timer-fill {
+            height: 100%; width: 0;
+            background: rgba(255,255,255,0.85);
+            transition: width 1s linear;
+        }
+
+        .howto-note {
+            background: #eef4ff;
+            border-left: 3px solid #667eea;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.82em;
+            color: #333;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
 
         .btn {
             padding: 7px 14px; border: none; border-radius: 8px;
@@ -689,7 +720,7 @@
         </div>
     </div>
 
-    <!-- Edit user block modal (with sub-tasks) -->
+    <!-- Edit user block modal (with sub-tasks + how-to note) -->
     <div class="modal-overlay" id="editModal" hidden>
         <div class="modal">
             <h3 id="editModalTitle">Edit block</h3>
@@ -697,6 +728,7 @@
             <label>Start time<input type="time" id="editStart"></label>
             <label>Duration (minutes)<input type="number" id="editDuration" min="5" step="5"></label>
             <label>Day<select id="editDay"></select></label>
+            <div class="howto-note" id="editHowToNote" hidden></div>
             <div class="subtask-section">
                 <div class="subtask-heading">Steps (optional)</div>
                 <div id="editSubTasks"></div>
@@ -809,6 +841,16 @@
                 <li>What does everyone need — the kids <em>and</em> the adults?</li>
             </ul>
 
+            <h4>The clock ends you, not the task</h4>
+            <p>When a block's timer goes off, you're done — even mid-job. You don't have to finish it, you have to spend the time. If you stop in the middle, the supplies still get put away.</p>
+
+            <h4>Two things aren't on the clock, because they aren't chores</h4>
+            <ul>
+                <li>When you leave a room, your dishes and your trash come with you.</li>
+                <li>Clean up what you see on the way past, whoever it belongs to.</li>
+            </ul>
+            <p>No counting, nobody keeping score on that second part. If everybody does it, it balances out.</p>
+
             <h4>Give it two weeks</h4>
             <p>New routines take a couple of weeks to feel normal. Plan to sit down at day 14 and adjust together. That check-in matters more than any single day.</p>
 
@@ -858,17 +900,115 @@
         '#34495e', '#e91e63'
     ];
 
+    // Activities. Optional fields:
+    //   defaultSubTasks: string[]  -> materialized into subTasks on drop
+    //   howToNote: string          -> shown in the edit modal for reference
+    //
+    // The House catalog and its defaults trace back to Dad's wall-sheet
+    // "How to do it" cards and the master maintenance inventory. Minutes
+    // are taken from those cards, not guessed.
     const ACTIVITIES = [
-        { section: 'Must-do',   type: 'must-do',     name: 'Homework',     duration: 30 },
-        { section: 'Must-do',   type: 'must-do',     name: 'Reading',      duration: 20 },
-        { section: 'Must-do',   type: 'must-do',     name: 'Instrument',   duration: 20 },
-        { section: 'Must-do',   type: 'must-do',     name: 'Dinner',       duration: 20 },
-        { section: 'Flexible',  type: 'flexible',    name: 'Free Play',    duration: 30 },
-        { section: 'Flexible',  type: 'flexible',    name: 'Snack',        duration: 15 },
-        { section: 'Flexible',  type: 'flexible',    name: 'Wait',         duration: 15 },
-        { section: 'Screen',    type: 'screen-time', name: 'Screen Time',  duration: 30 },
-        { section: 'Special',   type: 'special',     name: 'Outside Time', duration: 60 },
-        { section: 'Special',   type: 'special',     name: 'Sports',       duration: 45 }
+        { section: 'Must-do', type: 'must-do', name: 'Homework',   duration: 30 },
+        { section: 'Must-do', type: 'must-do', name: 'Reading',    duration: 20 },
+        { section: 'Must-do', type: 'must-do', name: 'Instrument', duration: 20 },
+        { section: 'Must-do', type: 'must-do', name: 'Dinner',     duration: 20 },
+
+        { section: 'Flexible', type: 'flexible', name: 'Free Play', duration: 30 },
+        { section: 'Flexible', type: 'flexible', name: 'Snack',     duration: 15 },
+        { section: 'Flexible', type: 'flexible', name: 'Wait',      duration: 15 },
+
+        { section: 'Screen', type: 'screen-time', name: 'Screen Time', duration: 30 },
+
+        { section: 'Special', type: 'special', name: 'Outside Time', duration: 60 },
+        { section: 'Special', type: 'special', name: 'Sports',       duration: 45 },
+        { section: 'Special', type: 'special', name: 'Moving',       duration: 30,
+          howToNote: 'Any 30 minutes of body-moving counts. Walk, bike, sport, dance.' },
+        { section: 'Special', type: 'special', name: 'Making',       duration: 30,
+          howToNote: 'Build, draw, write, cook, code — anything you make counts.' },
+
+        // House catalog — from the wall sheets. Some carry pre-filled
+        // steps you can check off, and a short "how to do it" note.
+        { section: 'House', type: 'must-do', name: 'Clean bathroom', duration: 15,
+          howToNote: 'Done = Nothing on the counter but what lives there, and the mirror has no spots.',
+          defaultSubTasks: [
+            'Clear the counter and tub edge; stray clothes to the hamper',
+            'Cleaner on sink, tub, shower — let it sit',
+            'Bowl cleaner in, brush around, flush; wipe seat and outside',
+            'Wipe sink and tub; mirror with glass cleaner; floor last',
+            'Fresh towel, empty the trash, check the TP'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Vacuum a room', duration: 10,
+          howToNote: 'Done = The whole room, edges included, and the vacuum is away.',
+          defaultSubTasks: [
+            'Pick the floor up first — the vacuum is not a toy sorter',
+            'Move light stuff: chairs out, cords out of the way',
+            'Edges and along baseboards first, then the middle',
+            'Put the vacuum back where it lives'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Kitchen counters + stove', duration: 10,
+          howToNote: 'Done = You could set down a plate anywhere and it would be fine.',
+          defaultSubTasks: [
+            'Everything off the counter goes where it lives',
+            'Crumbs into your hand or the sink; spray + microfiber',
+            'Wipe the stove while it is cool (baking-soda paste for stuck-on)',
+            'Wipe the table, then sweep the floor'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Kitchen floor', duration: 10,
+          howToNote: 'Done = Dry in a few minutes and nothing sticks to your feet.',
+          defaultSubTasks: [
+            'Sweep first, always',
+            'Swiffer WetJet — a little squirt, then pass over',
+            'Work from the far corner back toward the door',
+            'New pad when the current one stops picking anything up'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Mirrors + glass', duration: 5,
+          howToNote: 'Done = No streaks when you look at it from the side.',
+          defaultSubTasks: [
+            'Spray the cloth, not the mirror',
+            'Wipe in one direction, top to bottom',
+            'Second pass with a dry microfiber (kills streaks)',
+            'Get the toothpaste spots at the bottom'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Fold + put away towels', duration: 5,
+          howToNote: 'Done = The basket is empty and the shelf closes.',
+          defaultSubTasks: [
+            'Fold in the room they live in',
+            'Bathroom towels in thirds, then half',
+            'Anything still damp goes back in the dryer',
+            'Empty basket back where it belongs'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Dishwasher (load or empty)', duration: 10,
+          howToNote: 'Done = It runs, and nothing comes out still dirty.',
+          defaultSubTasks: [
+            'Scrape into the trash (rinsing not needed)',
+            'Plates and bowls face the middle; cups upside down',
+            'Knives point down, everything else up',
+            'Nothing blocks the spinning arm — spin it by hand to check'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Trash + recycling', duration: 5,
+          howToNote: 'Done = Every can in the house has a liner in it.',
+          defaultSubTasks: [
+            'Tie the bag before you lift it',
+            'New liner goes in before you leave the room',
+            'Cardboard broken down flat',
+            'Bins to the curb the night before'
+          ] },
+        { section: 'House', type: 'must-do', name: 'Common-area pickup', duration: 15,
+          howToNote: 'Clock ends you, not the room. Whatever you get to counts.' },
+        { section: 'House', type: 'must-do', name: 'Bedroom pickup',      duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Make bed',            duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Put laundry away',    duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Toilets',             duration: 15 },
+        { section: 'House', type: 'must-do', name: 'Tubs + showers',      duration: 20 },
+        { section: 'House', type: 'must-do', name: 'Wipe counters + sinks', duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Vacuum common areas', duration: 30 },
+        { section: 'House', type: 'must-do', name: 'Sweep kitchen',       duration: 10 },
+        { section: 'House', type: 'must-do', name: 'Set out tomorrow’s clothes', duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Pack bag + water bottle', duration: 5 },
+        { section: 'House', type: 'must-do', name: 'Yard pickup',         duration: 20 },
+        { section: 'House', type: 'must-do', name: 'Bring in groceries',  duration: 15 },
+        { section: 'House', type: 'must-do', name: 'House time (30)',     duration: 30,
+          howToNote: 'Pick anything off the House list — your own room and laundry count too. Timer ends you.' }
     ];
 
     // Default routines used to seed a new family. Once state has routines,
@@ -889,6 +1029,14 @@
             { name: 'Shower / Wash Up',      duration: 15, type: 'must-do' },
             { name: 'Pajamas / Brush Teeth', duration: 10, type: 'must-do' },
             { name: 'Reading',               duration: 20, type: 'must-do' }
+        ]},
+        // The wall-sheet "deal": 30 house + 30 reading + 30 moving + 30 making.
+        // Kids drop it, then arrange the four blocks however they want.
+        dailyDeal: { label: 'Daily deal (30/30/30/30)', items: [
+            { name: 'House time (30)', duration: 30, type: 'must-do' },
+            { name: 'Reading',         duration: 30, type: 'must-do' },
+            { name: 'Moving',          duration: 30, type: 'special' },
+            { name: 'Making',          duration: 30, type: 'special' }
         ]}
     };
 
@@ -922,15 +1070,24 @@
     let editingRoutineKey = null;
     let editingRoutineItems = [];
     let pendingFirstThen = null;         // { day, afterTime, personId } after a must-do drop
+    let activeTimer = null;              // { blockId, personId, endTs, durationMs }
+    let timerTickInterval = null;
+    let audioCtx = null;                 // lazy — needs a user gesture first
 
     function defaultState() {
         return sampleFamilyState();
     }
 
     function sampleFamilyState() {
+        // Wall-sheet kid times: wind-down 8:30, screens off 9, bed 10.
+        // Adults keep DEFAULT_KEY_TIMES.
+        const kidKeyTimes = { ...DEFAULT_KEY_TIMES,
+            windDown: 20.5, screensOff: 21.0, bedtime: 22.0 };
         const ollie = makePerson('Ollie', 'kid', '#667eea', '🧒');
+        ollie.keyTimes = { ...kidKeyTimes };
         ollie.anchors = SEED_OLLIE_ANCHORS.map(withAnchorId);
         const emmet = makePerson('Emmet', 'kid', '#e74c3c', '🧒');
+        emmet.keyTimes = { ...kidKeyTimes };
         emmet.anchors = SEED_EMMET_ANCHORS.map(withAnchorId);
         const parent = makePerson('You', 'adult', '#16a085', '👤');
         return {
@@ -1053,8 +1210,14 @@
                 }))
             };
         }
-        // If migration dropped everything, seed defaults.
-        return Object.keys(out).length ? out : cloneRoutines(DEFAULT_ROUTINES);
+        if (Object.keys(out).length === 0) return cloneRoutines(DEFAULT_ROUTINES);
+        // v5.2: seed the "Daily deal" routine for v5.1 users who don't have it.
+        // A user who removes it later keeps their choice (won't be re-added).
+        if (!out.dailyDeal && DEFAULT_ROUTINES.dailyDeal) {
+            const src = DEFAULT_ROUTINES.dailyDeal;
+            out.dailyDeal = { label: src.label, items: src.items.map(i => ({ ...i })) };
+        }
+        return out;
     }
 
     function migrateFromV4(rawV4) {
@@ -1273,6 +1436,13 @@
             alert('That runs into an anchor. Try a different time.');
             return false;
         }
+        // If this activity has a template sub-task list, materialize it
+        // into the block's own working copy. Users can edit or clear it.
+        const subTasks = Array.isArray(partial.defaultSubTasks)
+            ? partial.defaultSubTasks.map(name => ({
+                id: genSubTaskId(), name: String(name), done: false
+              }))
+            : [];
         const block = {
             id: genBlockId(),
             personId: p.id,
@@ -1281,7 +1451,7 @@
             name: partial.name,
             type: partial.type,
             source: partial.source || 'activity',
-            subTasks: []
+            subTasks
         };
         p.schedule.blocks.push(block);
         saveState(); renderApp();
@@ -1350,6 +1520,75 @@
         const p = currentPerson();
         p.schedule.blocks = p.schedule.blocks.filter(b => !ids.includes(b.id));
         saveState(); renderApp();
+    }
+
+    // =====================================================================
+    // TIMER (tap-to-start countdown on a block)
+    // "The clock ends you, not the task." A single active timer at a time.
+    // Not persisted — if the tab closes the timer just ends. That's the
+    // point: no shame accounting, no streaks, no state to rebuild.
+    // =====================================================================
+
+    function ensureAudio() {
+        if (audioCtx) return audioCtx;
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { audioCtx = null; }
+        return audioCtx;
+    }
+    function playChime() {
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(660, now + 0.18);
+        osc.frequency.setValueAtTime(880, now + 0.36);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now); osc.stop(now + 0.9);
+    }
+    function startBlockTimer(blockId) {
+        const p = currentPerson();
+        const b = p.schedule.blocks.find(x => x.id === blockId);
+        if (!b) return;
+        ensureAudio();                   // unlock on the user gesture
+        if (activeTimer) stopBlockTimer(false);
+        const durationMs = Math.max(1000, b.duration * 60 * 1000);
+        activeTimer = {
+            blockId, personId: p.id,
+            endTs: Date.now() + durationMs,
+            durationMs
+        };
+        if (timerTickInterval) clearInterval(timerTickInterval);
+        timerTickInterval = setInterval(tickTimer, 1000);
+        renderApp();
+    }
+    function stopBlockTimer(completed) {
+        if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+        const wasCompleted = !!completed;
+        activeTimer = null;
+        if (wasCompleted) {
+            playChime();
+            // Observational voice — no scolding, no requiring finish.
+            setTimeout(() => alert(
+                'Time is up. If you stopped mid-task, the supplies still go away.'
+            ), 30);
+        }
+        renderApp();
+    }
+    function tickTimer() {
+        if (!activeTimer) return;
+        const remaining = activeTimer.endTs - Date.now();
+        if (remaining <= 0) { stopBlockTimer(true); return; }
+        // Update fill without a full re-render.
+        const fill = document.querySelector('.block-timer-fill');
+        if (fill) {
+            const pct = 100 * (1 - remaining / activeTimer.durationMs);
+            fill.style.width = pct.toFixed(1) + '%';
+        }
     }
 
     function copyDayBlocks(srcDay, targetDays) {
@@ -1559,7 +1798,13 @@
                     <span class="activity-duration">${a.duration}m</span>
                 `;
                 card.addEventListener('dragstart', () => {
-                    dragPayload = { kind: 'activity', type: a.type, name: a.name, duration: a.duration };
+                    dragPayload = {
+                        kind: 'activity',
+                        type: a.type,
+                        name: a.name,
+                        duration: a.duration,
+                        defaultSubTasks: a.defaultSubTasks || null
+                    };
                     card.style.opacity = '0.5';
                 });
                 card.addEventListener('dragend', () => {
@@ -1778,6 +2023,24 @@
                 badge.textContent = '×' + g.blockIds.length;
                 el.appendChild(badge);
             }
+            // Tap-to-start timer button. Uses the FIRST block's id — the
+            // active timer lives against that id, and the merged group
+            // still shows the fill on the same visual card.
+            const firstId = g.blockIds[0];
+            const isActive = activeTimer && activeTimer.blockId === firstId;
+            const timerBtn = document.createElement('button');
+            timerBtn.className = 'timer-btn' + (isActive ? ' active' : '');
+            timerBtn.textContent = isActive ? '⏹' : '⏱';
+            timerBtn.title = isActive
+                ? 'Stop the timer'
+                : 'Start a ' + g.totalDuration + 'm timer';
+            timerBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                if (isActive) stopBlockTimer(false);
+                else startBlockTimer(firstId);
+            });
+            el.appendChild(timerBtn);
+
             const remove = document.createElement('button');
             remove.className = 'block-remove';
             remove.textContent = '×';
@@ -1792,6 +2055,20 @@
                 }
             });
             el.appendChild(remove);
+
+            // Active-timer progress fill sits on the block.
+            if (isActive) {
+                const bar = document.createElement('div');
+                bar.className = 'block-timer';
+                const fill = document.createElement('div');
+                fill.className = 'block-timer-fill';
+                const remaining = activeTimer.endTs - Date.now();
+                const pct = 100 * (1 - remaining / activeTimer.durationMs);
+                fill.style.width = Math.max(0, Math.min(100, pct)).toFixed(1) + '%';
+                bar.appendChild(fill);
+                el.appendChild(bar);
+            }
+
             el.addEventListener('click', () => openEditModal(g));
             cell.appendChild(el);
         });
@@ -2028,7 +2305,8 @@
                 duration: dragPayload.duration,
                 name: dragPayload.name,
                 type: dragPayload.type,
-                source: 'activity'
+                source: 'activity',
+                defaultSubTasks: dragPayload.defaultSubTasks
             });
         } else if (dragPayload.kind === 'routine') {
             dropRoutine(dragPayload.routineKey, day, time);
@@ -2061,6 +2339,16 @@
             if (i === first.day) opt.selected = true;
             daySel.appendChild(opt);
         });
+        // How-to note, looked up by activity name from the catalog. Silently
+        // absent if this block was custom-named or from a routine step.
+        const catalog = ACTIVITIES.find(a => a.name === first.name);
+        const noteEl = document.getElementById('editHowToNote');
+        if (catalog && catalog.howToNote) {
+            noteEl.textContent = catalog.howToNote;
+            noteEl.hidden = false;
+        } else {
+            noteEl.hidden = true;
+        }
         renderEditSubTasks();
         document.getElementById('editModal').hidden = false;
     }
