@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Operating System v5.2</title>
+    <title>Family Operating System v5.3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -457,6 +457,60 @@
             line-height: 1.4;
         }
 
+        /* Family templates — cards + edit modal rows. */
+        .template-card {
+            background: white; border-radius: 8px;
+            padding: 8px 10px; margin-bottom: 4px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid #8e44ad;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            gap: 6px;
+        }
+        .template-card .template-body { flex: 1; min-width: 0; }
+        .template-card .apply-btn {
+            font-size: 0.7em;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white; border: none; border-radius: 6px;
+            font-weight: 700; cursor: pointer;
+        }
+        .template-card .apply-btn:hover { filter: brightness(1.1); }
+        .template-card .edit-marker {
+            font-size: 0.75em; color: #999; cursor: pointer; padding: 0 4px;
+        }
+        .template-card .edit-marker:hover { color: #8e44ad; }
+
+        .template-item {
+            background: #fafafa; border: 1px solid #eee;
+            border-radius: 6px; padding: 8px;
+            margin-bottom: 6px;
+            display: flex; flex-direction: column; gap: 6px;
+            position: relative;
+        }
+        .template-item > .rm {
+            position: absolute; top: 4px; right: 4px;
+            background: transparent; border: none; color: #c0392b;
+            cursor: pointer; font-size: 1em; padding: 2px 6px;
+        }
+        .template-item-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+        .template-item-row.two { grid-template-columns: 1fr 1fr; }
+        .template-item label {
+            display: block; font-size: 0.7em; font-weight: 700;
+            color: #666; margin-bottom: 2px; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .template-item input, .template-item select {
+            margin: 0; padding: 5px 7px; font-size: 0.85em;
+            width: 100%;
+        }
+        .template-hint {
+            font-size: 0.75em; color: #888; margin-top: 4px; line-height: 1.4;
+        }
+
         .btn {
             padding: 7px 14px; border: none; border-radius: 8px;
             font-weight: 600; cursor: pointer; font-size: 0.85em;
@@ -641,7 +695,7 @@
     <div class="container">
         <header>
             <div class="brand">
-                <h1>Family Operating System<span class="version">v5.1</span></h1>
+                <h1>Family Operating System<span class="version">v5.3</span></h1>
                 <p class="subtitle">A visible scaffold for the family week.</p>
             </div>
             <div class="header-actions">
@@ -697,6 +751,14 @@
                         <button class="h3-action" id="addRoutineBtn">+ Add</button>
                     </h3>
                     <div id="routineBank"></div>
+                </div>
+
+                <div class="panel" id="templatesPanel">
+                    <h3>
+                        Family templates
+                        <button class="h3-action" id="addTemplateBtn">+ Add</button>
+                    </h3>
+                    <div id="templateBank"></div>
                 </div>
 
                 <div class="panel" id="dayActionsPanel">
@@ -811,6 +873,25 @@
                 <button class="btn btn-danger" id="routineDeleteBtn">Remove routine</button>
                 <button class="btn" id="routineCancelBtn">Cancel</button>
                 <button class="btn btn-primary" id="routineSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family template edit modal -->
+    <div class="modal-overlay" id="templateModal" hidden>
+        <div class="modal">
+            <h3 id="templateModalTitle">Family template</h3>
+            <label>Name<input type="text" id="templateName" placeholder="Family dinner, Thursday reset…"></label>
+            <div class="subtask-section">
+                <div class="subtask-heading">Blocks — each row places one block on the selected day for the selected people</div>
+                <div id="templateItems"></div>
+                <button class="subtask-add" id="addTemplateItemBtn">+ Add block</button>
+                <p class="template-hint">Apply stamps every row across everyone the row targets. Rows that overlap an anchor are skipped and named.</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="templateDeleteBtn">Remove template</button>
+                <button class="btn" id="templateCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="templateSaveBtn">Save</button>
             </div>
         </div>
     </div>
@@ -1040,6 +1121,42 @@
         ]}
     };
 
+    // Family templates — recipes that stamp blocks across MULTIPLE people
+    // at once. Each item names a day, start time, duration, type, and the
+    // people it applies to ('all', 'kids', 'adults', or an id array).
+    // Applied via the panel's "Apply" button, not by dragging (each item
+    // already carries its day, so drag would be ambiguous).
+    const DEFAULT_TEMPLATES = {
+        familyDinner: {
+            label: 'Family dinner (weeknights)',
+            items: [
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 0, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 1, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 2, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 3, start: 18.0, targets: 'all' },
+                { name: 'Dinner', type: 'must-do', duration: 30, day: 4, start: 18.0, targets: 'all' }
+            ]
+        },
+        thursdayReset: {
+            label: 'Thursday reset',
+            items: [
+                { name: 'Whole-house reset', type: 'must-do', duration: 20, day: 3, start: 19.0, targets: 'all' }
+            ]
+        },
+        weeklyRhythm: {
+            label: 'Weekly rhythm (wall sheet)',
+            items: [
+                { name: 'Kitchen day',           type: 'must-do', duration: 30, day: 0, start: 17.0, targets: 'all' },
+                { name: 'Bedrooms + laundry',    type: 'must-do', duration: 30, day: 1, start: 17.0, targets: 'all' },
+                { name: 'Bathrooms',             type: 'must-do', duration: 30, day: 2, start: 17.0, targets: 'all' },
+                { name: 'Living + office reset', type: 'must-do', duration: 20, day: 3, start: 19.0, targets: 'all' },
+                { name: 'Basement',              type: 'must-do', duration: 30, day: 4, start: 17.0, targets: 'all' },
+                { name: 'Exterior + repairs',    type: 'must-do', duration: 60, day: 5, start: 10.0, targets: 'all' },
+                { name: 'Whole-house reset',     type: 'must-do', duration: 45, day: 6, start: 16.0, targets: 'all' }
+            ]
+        }
+    };
+
     const SEED_OLLIE_ANCHORS = [
         { label: 'Travel',    start: 6.83,  end: 7.75,  type: 'travel',  days: [0,1,2,3,4] },
         { label: "At Mom's",  start: 7.75,  end: 8.17,  type: 'wait',    days: [0,1,2,3,4] },
@@ -1073,6 +1190,8 @@
     let activeTimer = null;              // { blockId, personId, endTs, durationMs }
     let timerTickInterval = null;
     let audioCtx = null;                 // lazy — needs a user gesture first
+    let editingTemplateKey = null;
+    let editingTemplateItems = [];
 
     function defaultState() {
         return sampleFamilyState();
@@ -1097,7 +1216,8 @@
             view: 'parent',
             introSeen: false,
             people: [ollie, emmet, parent],
-            routines: cloneRoutines(DEFAULT_ROUTINES)
+            routines: cloneRoutines(DEFAULT_ROUTINES),
+            templates: cloneTemplates(DEFAULT_TEMPLATES)
         };
     }
 
@@ -1105,6 +1225,14 @@
         const out = {};
         for (const [k, r] of Object.entries(src)) {
             out[k] = { label: r.label, items: r.items.map(i => ({ ...i })) };
+        }
+        return out;
+    }
+
+    function cloneTemplates(src) {
+        const out = {};
+        for (const [k, t] of Object.entries(src)) {
+            out[k] = { label: t.label, items: t.items.map(i => ({ ...i })) };
         }
         return out;
     }
@@ -1156,10 +1284,35 @@
         const migrated = {
             ...fresh, ...raw,
             people: raw.people.map(normalizePerson),
-            routines: normalizeRoutines(raw.routines)
+            routines: normalizeRoutines(raw.routines),
+            templates: normalizeTemplates(raw.templates)
         };
         migrated.version = SCHEMA_VERSION;
         return migrated;
+    }
+
+    // v5.3: keep whatever templates a user has, but seed the defaults if
+    // they're missing entirely, and add any built-in slug that's missing.
+    // Removing a default keeps it removed.
+    function normalizeTemplates(ts) {
+        if (!ts || typeof ts !== 'object') return cloneTemplates(DEFAULT_TEMPLATES);
+        const out = {};
+        for (const [k, t] of Object.entries(ts)) {
+            if (!t || !Array.isArray(t.items)) continue;
+            out[k] = {
+                label: t.label || 'Template',
+                items: t.items.map(i => ({
+                    name: i.name || 'Block',
+                    type: i.type || 'must-do',
+                    duration: Math.max(5, parseInt(i.duration, 10) || 30),
+                    day: (typeof i.day === 'number' && i.day >= 0 && i.day <= 6) ? i.day : 0,
+                    start: (typeof i.start === 'number') ? i.start : 18,
+                    targets: (typeof i.targets === 'string' || Array.isArray(i.targets)) ? i.targets : 'all'
+                }))
+            };
+        }
+        if (Object.keys(out).length === 0) return cloneTemplates(DEFAULT_TEMPLATES);
+        return out;
     }
 
     function normalizePerson(p) {
@@ -1242,7 +1395,8 @@
             view: 'parent',
             introSeen: true,
             people: [ollie, emmet, parent],
-            routines: cloneRoutines(DEFAULT_ROUTINES)
+            routines: cloneRoutines(DEFAULT_ROUTINES),
+            templates: cloneTemplates(DEFAULT_TEMPLATES)
         };
     }
 
@@ -1615,6 +1769,74 @@
         saveState(); renderApp();
     }
 
+    // Family template CRUD + apply
+    // Templates stamp identical blocks across N people at once.
+    function resolveTargets(targets, people) {
+        if (targets === 'all')    return people.map(p => p.id);
+        if (targets === 'kids')   return people.filter(p => p.role === 'kid').map(p => p.id);
+        if (targets === 'adults') return people.filter(p => p.role !== 'kid').map(p => p.id);
+        if (Array.isArray(targets)) return targets.filter(id => people.some(p => p.id === id));
+        return [];
+    }
+
+    function addTemplate() {
+        const key = 't_' + Math.random().toString(36).slice(2, 8);
+        state.templates[key] = { label: 'New template', items: [
+            { name: 'New block', type: 'must-do', duration: 30, day: 0, start: 18.0, targets: 'all' }
+        ]};
+        saveState(); renderApp();
+        openTemplateModal(key);
+    }
+    function saveTemplatePatch(key, patch) {
+        const t = state.templates[key];
+        if (!t) return;
+        if (patch.label !== undefined) t.label = patch.label;
+        if (patch.items !== undefined) t.items = patch.items;
+        saveState(); renderApp();
+    }
+    function removeTemplate(key) {
+        delete state.templates[key];
+        saveState(); renderApp();
+    }
+    function applyTemplate(key) {
+        const tpl = state.templates[key];
+        if (!tpl) return;
+        let added = 0;
+        const skipped = [];
+        tpl.items.forEach(item => {
+            const targetIds = resolveTargets(item.targets, state.people);
+            targetIds.forEach(pid => {
+                const person = state.people.find(p => p.id === pid);
+                if (!person) return;
+                const start = clampToGrid(snap5(item.start));
+                const end = start + item.duration / 60;
+                if (overlapsAnchor(person, item.day, start, end)) {
+                    skipped.push(`${person.name} · ${DAYS_SHORT[item.day]} ${format12(start)} · ${item.name}`);
+                    return;
+                }
+                person.schedule.blocks.push({
+                    id: genBlockId(),
+                    personId: pid,
+                    day: item.day,
+                    start, duration: item.duration,
+                    name: item.name,
+                    type: item.type,
+                    source: 'template',
+                    subTasks: []
+                });
+                added++;
+            });
+        });
+        saveState(); renderApp();
+        let msg = `Placed ${added} block${added===1?'':'s'} across the family.`;
+        if (skipped.length) {
+            msg += `\n\nSkipped ${skipped.length} that would run into an anchor:\n• `
+                + skipped.slice(0, 6).join('\n• ');
+            if (skipped.length > 6) msg += `\n• …and ${skipped.length - 6} more.`;
+        }
+        alert(msg);
+    }
+
     // Routine CRUD
     function addRoutine() {
         const key = 'r_' + Math.random().toString(36).slice(2, 8);
@@ -1688,6 +1910,7 @@
         renderAnchorsPanel();
         renderActivityBank();
         renderRoutineBank();
+        renderTemplateBank();
         renderCalendar();
         renderBudget();
         renderCountdownStrip();
@@ -1844,6 +2067,42 @@
                     openRoutineModal(key);
                 }
             });
+            bank.appendChild(card);
+        });
+    }
+
+    function renderTemplateBank() {
+        const bank = document.getElementById('templateBank');
+        bank.innerHTML = '';
+        const entries = Object.entries(state.templates || {});
+        if (entries.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'anchor-empty';
+            empty.textContent = 'No templates yet. Add one for shared family blocks (dinner, Thursday reset).';
+            bank.appendChild(empty);
+            return;
+        }
+        entries.forEach(([key, tpl]) => {
+            const uniqueDays = [...new Set(tpl.items.map(i => i.day))].sort();
+            const daysStr = uniqueDays.length === 7 ? 'every day'
+                : uniqueDays.length === 5 && [0,1,2,3,4].every(d => uniqueDays.includes(d)) ? 'weekdays'
+                : uniqueDays.length === 2 && [5,6].every(d => uniqueDays.includes(d)) ? 'weekends'
+                : uniqueDays.map(d => DAYS_LETTER[d]).join('');
+            const card = document.createElement('div');
+            card.className = 'template-card';
+            card.innerHTML = `
+                <div class="template-body">
+                    <div class="activity-name">${escapeHtml(tpl.label)}</div>
+                    <div class="routine-meta">${tpl.items.length} block${tpl.items.length===1?'':'s'} · ${daysStr}</div>
+                </div>
+                <button class="apply-btn" title="Stamp this template across the family">Apply</button>
+                <span class="edit-marker" title="Edit template">✎</span>
+            `;
+            card.querySelector('.apply-btn').addEventListener('click', () => {
+                if (!confirm(`Apply "${tpl.label}"? This places blocks on everyone the template targets.`)) return;
+                applyTemplate(key);
+            });
+            card.querySelector('.edit-marker').addEventListener('click', () => openTemplateModal(key));
             bank.appendChild(card);
         });
     }
@@ -2573,6 +2832,124 @@
         closeRoutineModal();
     }
 
+    // Family template modal — an editable list of {name, day, start,
+    // duration, type, targets} rows. Apply from the sidebar stamps them
+    // across everyone the row targets.
+    function openTemplateModal(key) {
+        editingTemplateKey = key;
+        const t = state.templates[key];
+        if (!t) return;
+        editingTemplateItems = t.items.map(i => ({ ...i }));
+        document.getElementById('templateModalTitle').textContent = 'Edit template';
+        document.getElementById('templateName').value = t.label;
+        renderTemplateItems();
+        document.getElementById('templateModal').hidden = false;
+    }
+    function renderTemplateItems() {
+        const wrap = document.getElementById('templateItems');
+        wrap.innerHTML = '';
+        editingTemplateItems.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'template-item';
+            row.innerHTML = `
+                <button class="rm" title="Remove block">×</button>
+                <div>
+                    <label>Name</label>
+                    <input type="text" class="tpl-name" value="${escapeHtml(item.name)}" placeholder="Block name">
+                </div>
+                <div class="template-item-row">
+                    <div>
+                        <label>Day</label>
+                        <select class="tpl-day"></select>
+                    </div>
+                    <div>
+                        <label>Start</label>
+                        <input type="time" class="tpl-start" value="${decimalToHm(item.start)}">
+                    </div>
+                    <div>
+                        <label>Minutes</label>
+                        <input type="number" class="tpl-duration" min="5" step="5" value="${item.duration}">
+                    </div>
+                </div>
+                <div class="template-item-row two">
+                    <div>
+                        <label>Type</label>
+                        <select class="tpl-type">
+                            <option value="must-do">Must-do</option>
+                            <option value="flexible">Flexible</option>
+                            <option value="screen-time">Screen</option>
+                            <option value="special">Special</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Targets</label>
+                        <select class="tpl-targets">
+                            <option value="all">Everyone</option>
+                            <option value="kids">All kids</option>
+                            <option value="adults">All adults</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            const daySel = row.querySelector('.tpl-day');
+            DAYS_SHORT.forEach((d, i) => {
+                const opt = document.createElement('option');
+                opt.value = i; opt.textContent = d;
+                if (i === item.day) opt.selected = true;
+                daySel.appendChild(opt);
+            });
+            row.querySelector('.tpl-type').value = item.type;
+            row.querySelector('.tpl-targets').value =
+                typeof item.targets === 'string' ? item.targets : 'all';
+            row.querySelector('.tpl-name').addEventListener('input', e => { item.name = e.target.value; });
+            daySel.addEventListener('change', e => { item.day = parseInt(e.target.value, 10); });
+            row.querySelector('.tpl-start').addEventListener('input', e => { item.start = hmToDecimal(e.target.value); });
+            row.querySelector('.tpl-duration').addEventListener('input', e => {
+                item.duration = Math.max(5, parseInt(e.target.value, 10) || 5);
+            });
+            row.querySelector('.tpl-type').addEventListener('change', e => { item.type = e.target.value; });
+            row.querySelector('.tpl-targets').addEventListener('change', e => { item.targets = e.target.value; });
+            row.querySelector('.rm').addEventListener('click', () => {
+                editingTemplateItems.splice(idx, 1);
+                renderTemplateItems();
+            });
+            wrap.appendChild(row);
+        });
+    }
+    function closeTemplateModal() {
+        editingTemplateKey = null;
+        editingTemplateItems = [];
+        document.getElementById('templateModal').hidden = true;
+    }
+    function saveTemplateModal() {
+        if (!editingTemplateKey) return;
+        const cleaned = editingTemplateItems
+            .filter(i => i.name.trim())
+            .map(i => ({
+                name: i.name.trim(),
+                type: i.type,
+                duration: i.duration,
+                day: i.day,
+                start: i.start,
+                targets: i.targets
+            }));
+        if (cleaned.length === 0) {
+            alert('A template needs at least one block.');
+            return;
+        }
+        saveTemplatePatch(editingTemplateKey, {
+            label: document.getElementById('templateName').value.trim() || 'Template',
+            items: cleaned
+        });
+        closeTemplateModal();
+    }
+    function deleteTemplateModal() {
+        if (!editingTemplateKey) return;
+        if (!confirm('Remove this template?')) return;
+        removeTemplate(editingTemplateKey);
+        closeTemplateModal();
+    }
+
     // First/Then modal: after a must-do drop, offer to line up a "then"
     // desired-activity right after it — dopamine sandwich made explicit.
     function offerFirstThen({ personId, day, afterTime }) {
@@ -2696,6 +3073,22 @@
             if (e.target.id === 'routineModal') closeRoutineModal();
         });
 
+        // Family templates
+        document.getElementById('addTemplateBtn').addEventListener('click', addTemplate);
+        document.getElementById('templateCancelBtn').addEventListener('click', closeTemplateModal);
+        document.getElementById('templateSaveBtn').addEventListener('click', saveTemplateModal);
+        document.getElementById('templateDeleteBtn').addEventListener('click', deleteTemplateModal);
+        document.getElementById('addTemplateItemBtn').addEventListener('click', () => {
+            editingTemplateItems.push({
+                name: '', type: 'must-do', duration: 30,
+                day: 0, start: 18.0, targets: 'all'
+            });
+            renderTemplateItems();
+        });
+        document.getElementById('templateModal').addEventListener('click', e => {
+            if (e.target.id === 'templateModal') closeTemplateModal();
+        });
+
         // First/Then modal
         document.getElementById('firstThenSkipBtn').addEventListener('click', skipFirstThen);
         document.getElementById('firstThenModal').addEventListener('click', e => {
@@ -2708,12 +3101,14 @@
             const personOpen = !document.getElementById('personModal').hidden;
             const anchorOpen = !document.getElementById('anchorModal').hidden;
             const routineOpen = !document.getElementById('routineModal').hidden;
+            const templateOpen = !document.getElementById('templateModal').hidden;
             const ftOpen = !document.getElementById('firstThenModal').hidden;
             if (e.key === 'Escape') {
                 if (editOpen) closeEditModal();
                 if (personOpen) closePersonModal();
                 if (anchorOpen) closeAnchorModal();
                 if (routineOpen) closeRoutineModal();
+                if (templateOpen) closeTemplateModal();
                 if (ftOpen) skipFirstThen();
                 if (!document.getElementById('introOverlay').hidden) dismissIntro();
             } else if (e.key === 'Enter' && editOpen && e.target.tagName !== 'BUTTON') {
