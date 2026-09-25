@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{color-scheme:light;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font:14px system-ui,-apple-system,sans-serif;background:#F4F6F7;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>What the Pile Costs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --ink:#1A2024;
+  --ground:#F4F6F7;
+  --card:#FFFFFF;
+  --rule:#D9E1E6;
+  --hard:#8B979E;
+  --grey:#65727A;
+  --blue:#2C5F8A;
+  --blue-wash:#E7EFF5;
+  --amber:#8A5312;
+  --amber-wash:#F8EFE3;
+  --green:#3F6B2C;
+  --green-wash:#E9F0E4;
+  --floor:#EDEAE4;
+  --floor-line:#E2DED6;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Karla","Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px 90px;}
+
+/* ---------- masthead ---------- */
+header.mast{padding:64px 0 30px;border-bottom:2px solid var(--ink);}
+.eyebrow{
+  font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin:0 0 14px;
+}
+h1{
+  font-family:"Archivo",sans-serif;font-weight:800;
+  font-size:clamp(38px,6.2vw,66px);line-height:.98;letter-spacing:-.022em;
+  margin:0;text-wrap:balance;
+}
+.dek{
+  margin:18px 0 0;max-width:60ch;font-size:19px;color:var(--grey);
+}
+.dek strong{color:var(--ink);font-weight:700;}
+
+/* ---------- sections ---------- */
+section{padding:56px 0 0;}
+.sechead{display:flex;align-items:baseline;gap:16px;margin:0 0 8px;}
+.secnum{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;
+  color:var(--hard);letter-spacing:.06em;padding-top:6px;
+}
+h2{
+  font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(26px,3.6vw,36px);line-height:1.08;letter-spacing:-.015em;margin:0;
+  text-wrap:balance;
+}
+.sub{margin:6px 0 26px;color:var(--grey);max-width:62ch;}
+
+/* ---------- game ---------- */
+.gamecard{
+  background:var(--card);border:1px solid var(--rule);border-radius:3px;
+  padding:22px;display:flex;flex-direction:column;gap:18px;
+}
+.gbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;}
+.roundtag{
+  font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--card);background:var(--ink);
+  padding:5px 10px;border-radius:2px;
+}
+.clock{
+  font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:500;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;min-width:5.2ch;
+}
+.gbar .spacer{flex:1;}
+button{
+  font-family:"Archivo",sans-serif;font-weight:700;font-size:14px;letter-spacing:.03em;
+  background:var(--blue);color:#fff;border:none;border-radius:2px;
+  padding:11px 20px;cursor:pointer;transition:background .15s;
+}
+button:hover{background:#245075;}
+button:disabled{background:#C3CDD4;cursor:default;}
+button.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);}
+button.ghost:hover{background:var(--blue-wash);}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
+
+.hunt{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--rule);border-radius:2px;padding:5px 11px 5px 8px;
+  font-size:14px;font-weight:500;background:var(--card);transition:all .2s;
+}
+.chip .g{font-size:19px;line-height:1;}
+.chip.got{background:var(--green-wash);border-color:var(--green);color:var(--green);text-decoration:line-through;}
+
+.scene{
+  position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;
+  background:
+    repeating-linear-gradient(90deg,var(--floor) 0 78px,var(--floor-line) 78px 80px),
+    var(--floor);
+  border:1px solid var(--rule);border-radius:2px;
+  cursor:crosshair;user-select:none;
+}
+.scene.locked{cursor:default;filter:saturate(.25) opacity(.55);}
+.it{
+  position:absolute;transform:translate(-50%,-50%) rotate(var(--r));
+  font-size:clamp(15px,2.05vw,25px);line-height:1;
+}
+.it.t{cursor:pointer;}
+.it.found{
+  outline:3px solid var(--green);outline-offset:5px;border-radius:50%;
+  background:rgba(63,107,44,.13);
+}
+.miss{
+  position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  border:2px solid var(--amber);pointer-events:none;animation:ping .5s ease-out forwards;
+}
+@keyframes ping{from{transform:scale(.3);opacity:1;}to{transform:scale(1.6);opacity:0;}}
+@media (prefers-reduced-motion:reduce){.miss{animation:none;opacity:.6;}}
+
+.veil{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(244,246,247,.9);text-align:center;padding:24px;
+}
+.veil p{
+  font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(17px,2.6vw,24px);
+  max-width:26ch;margin:0;line-height:1.25;
+}
+
+/* ---------- players ---------- */
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:34px 0 0;}
+.wholab{font-family:"Archivo",sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-right:4px;}
+.pchip{background:transparent;color:var(--grey);border:1.5px solid var(--rule);padding:7px 16px;font-size:14px;}
+.pchip:hover{background:var(--blue-wash);color:var(--blue);}
+.pchip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+.pchip.on:hover{background:var(--ink);color:#fff;}
+.best{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--green);
+  background:var(--green-wash);border:1px solid var(--green);border-radius:2px;padding:3px 9px;
+  font-variant-numeric:tabular-nums;
+}
+.best:empty{display:none;}
+.tiny{font-size:12px;padding:6px 12px;margin-left:6px;}
+.tiny.done{background:var(--green-wash);border-color:var(--green);color:var(--green);}
+
+/* ---------- result ---------- */
+.result{border-top:2px solid var(--ink);margin-top:6px;padding-top:22px;display:none;}
+.result.on{display:block;}
+.bars{display:flex;flex-direction:column;gap:14px;margin:4px 0 22px;}
+.brow{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;}
+.blab{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);}
+.btrack{position:relative;height:36px;background:#EAEEF1;border-radius:2px;overflow:hidden;}
+.bfill{height:100%;width:0;transition:width .9s cubic-bezier(.2,.7,.3,1);}
+.bfill.mess{background:var(--amber);}
+.bfill.clear{background:var(--green);}
+.bval{
+  position:absolute;top:0;height:36px;display:flex;align-items:center;padding-left:12px;
+  font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.punch{
+  background:var(--amber-wash);border-left:4px solid var(--amber);
+  padding:18px 22px;border-radius:2px;
+}
+.punch p{margin:0 0 10px;}
+.punch p:last-child{margin:0;}
+.punch b{font-weight:700;}
+.big{font-family:"Archivo",sans-serif;font-weight:800;font-size:clamp(22px,3.4vw,30px);line-height:1.1;letter-spacing:-.015em;}
+
+/* ---------- math ---------- */
+.panel{
+  background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:26px;
+}
+.dials{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px;margin-bottom:30px;}
+.dial label{
+  display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:9px;
+}
+.dialnum{
+  font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;
+  font-variant-numeric:tabular-nums;display:block;margin-bottom:6px;
+}
+.dialnum span{font-size:14px;color:var(--grey);font-weight:400;margin-left:5px;}
+input[type=range]{width:100%;accent-color:var(--blue);height:22px;}
+input[type=range]:focus-visible{outline:3px solid var(--amber);outline-offset:3px;}
+.dial.fixed .dialnum{color:var(--grey);}
+.fixnote{margin:4px 0 0;font-size:14px;color:var(--hard);line-height:1.4;}
+
+.stack{margin:0 0 8px;}
+.stackbar{display:flex;height:54px;border-radius:2px;overflow:hidden;border:1px solid var(--rule);}
+.seg{display:flex;align-items:center;justify-content:center;transition:width .5s ease;overflow:hidden;}
+.seg span{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;
+  white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.seg.dad{background:var(--blue);}
+.seg.emmet{background:var(--green);}
+.seg.ollie{background:#5C8F44;}
+.key{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:12px;font-size:14px;color:var(--grey);}
+.key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;font-style:normal;}
+
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px;margin-top:28px;}
+.fig{background:var(--card);padding:18px 20px;}
+.fig dt{font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:7px;}
+.fig dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.fig dd em{font-style:normal;font-size:13px;color:var(--grey);font-family:"Karla",sans-serif;font-weight:400;margin-left:6px;}
+.fig.hero dd{color:var(--blue);}
+
+table.load{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px;}
+table.load th{
+  text-align:left;font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--grey);
+  border-bottom:1.5px solid var(--ink);padding:0 10px 8px 0;
+}
+table.load td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top;}
+table.load td.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:0;}
+.tblwrap{overflow-x:auto;}
+
+.note{font-size:15px;color:var(--grey);margin-top:18px;max-width:66ch;}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);font-size:14px;color:var(--hard);}
+
+@media print{
+  body{background:#fff;}
+  .gamecard,.panel{border-color:#bbb;}
+  button{display:none;}
+  section{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow"><a href="../" style="color:inherit;text-decoration:none;">← Family Operating System</a></p>
+  <h1>What the Pile Costs</h1>
+  <p class="dek">Two rooms, five things to find in each. Same five things, same spots, both times. <strong>Play it before you read the rest</strong>, and play it more than once.</p>
+</header>
+
+<div class="who" id="who">
+  <span class="best" id="bestOne"></span>
+  <button class="ghost tiny" id="wipe">Clear best times</button>
+</div>
+
+<section>
+  <div class="sechead"><span class="secnum">ROUND 1</span><h2>Find five things in a messy room</h2></div>
+  <p class="sub">Then find the same five in an empty one. Same things, same spots, both times. Play it as many times as you want... the room is different every round, so you cannot memorise it.</p>
+
+  <div class="gamecard">
+    <div class="gbar">
+      <span class="roundtag" id="tag1">Messy room</span>
+      <span class="clock" id="clock1">0.0s</span>
+      <span class="best" id="best1"></span>
+      <span class="spacer"></span>
+      <button id="go1">Start</button>
+    </div>
+    <div class="hunt" id="hunt1"></div>
+    <div class="scene" id="scene1"></div>
+  </div>
+</section>
+
+<section id="s2">
+  <div class="sechead"><span class="secnum">ROUND 2</span><h2>Now the clear room</h2></div>
+  <p class="sub">Nothing changed except what is lying around them.</p>
+
+  <div class="gamecard">
+    <div class="gbar">
+      <span class="roundtag" id="tag2">Clear room</span>
+      <span class="clock" id="clock2">0.0s</span>
+      <span class="best" id="best2"></span>
+      <span class="spacer"></span>
+      <button id="go2" disabled>Finish act 1 first</button>
+    </div>
+    <div class="hunt" id="hunt2"></div>
+    <div class="scene" id="scene2"></div>
+
+    <div class="result" id="res">
+      <div class="bars">
+        <div class="brow"><span class="blab">Messy room</span>
+          <div class="btrack"><div class="bfill mess" id="bar1"></div><div class="bval" id="val1"></div></div></div>
+        <div class="brow"><span class="blab">Clear room</span>
+          <div class="btrack"><div class="bfill clear" id="bar2"></div><div class="bval" id="val2"></div></div></div>
+      </div>
+      <div class="punch">
+        <p class="big" id="verdict"></p>
+        <p>Nobody here is bad at finding things. The messy room just charges more for the same search, and you pay it every time you look for your shoes, your charger, your homework, the good scissors.</p>
+      </div>
+      <div class="gbar" style="margin-top:18px">
+        <span class="spacer"></span>
+        <button class="ghost" id="again1">Play again, new room</button>
+      </div>
+      <div class="tblwrap"><table class="load" id="runs"></table></div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section>
+  <div class="sechead"><span class="secnum">THE MATH</span><h2>The whole load, and who carries it</h2></div>
+  <p class="sub">Every recurring job in this house, added up for a year. Not a guess. This comes off the master inventory, every daily, weekly, monthly, seasonal and annual task on it. Move the slider and watch what your half hour actually does.</p>
+
+  <div class="panel">
+    <div class="dials">
+      <div class="dial">
+        <label for="kidmin">Each of you, per day you are here</label>
+        <span class="dialnum" id="kidminOut">30<span>minutes</span></span>
+        <input type="range" id="kidmin" min="0" max="60" step="5" value="30">
+      </div>
+      <div class="dial fixed">
+        <label>Days the kids are around</label>
+        <span class="dialnum">182<span>a year, every other week</span></span>
+        <p class="fixnote">That one isn't a dial. If your custody or living situation is different, edit the code — this page's numbers are illustrative.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="stackbar">
+        <div class="seg dad" id="segDad"><span id="segDadT"></span></div>
+        <div class="seg emmet" id="segEmmet"><span id="segEmmetT"></span></div>
+        <div class="seg ollie" id="segOllie"><span id="segOllieT"></span></div>
+      </div>
+      <div class="key">
+        <span><i style="background:var(--blue)"></i>Adult</span>
+        <span><i style="background:var(--green)"></i>Kid 1</span>
+        <span><i style="background:#5C8F44"></i>Kid 2</span>
+      </div>
+    </div>
+
+    <dl class="figs">
+      <div class="fig hero"><dt>The house needs</dt><dd id="fTotal">0<em>hours a year</em></dd></div>
+      <div class="fig"><dt>The kids cover</dt><dd id="fKids">0<em>hours</em></dd></div>
+      <div class="fig"><dt>The adult covers the rest</dt><dd id="fDad">0<em>hours</em></dd></div>
+      <div class="fig"><dt>Adult's week</dt><dd id="fWeek">0<em>hours, every week</em></dd></div>
+    </dl>
+
+    <p class="note" id="shareNote"></p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="secnum">WHERE IT GOES</span><h2>What those hours actually are</h2></div>
+  <p class="sub">The number above is not one big job. It is a few hundred small ones that come back.</p>
+  <div class="panel">
+    <div class="tblwrap">
+      <table class="load">
+        <thead><tr><th>Kind of work</th><th>What is in it</th><th class="n">Hours a year</th></tr></thead>
+        <tbody id="loadRows"></tbody>
+      </table>
+    </div>
+    <p class="note">Hygiene and getting dressed are not counted here. Neither is cooking. This is only the work of keeping the house itself running.</p>
+    <p class="note"><b>And the goal is not a house that stays clean.</b> It is one that comes back fast after a bad week. Nothing on this list gets done every single time. What decides whether the house recovers is how much of it gets handled on the way past, before it turns into a pile that needs a whole afternoon.</p>
+  </div>
+</section>
+
+
+<section>
+  <div class="sechead"><span class="secnum">THE ASK</span><h2>Thirty minutes</h2></div>
+  <div class="panel">
+    <p style="margin-top:0"><b>Thirty minutes a day, on the days the kids are around.</b> They pick what it goes to. Their room, their laundry, their backpack, or anything off the house list. Their own stuff counts. When the timer goes off they're done, even in the middle of something. The clock ends you, not the task. No points, no charts, no supervision.</p>
+    <p><b>Two things aren't on the clock, because they aren't chores.</b> When you leave a room, your dishes and your trash come with you. And clean up what you see on the way past, whoever it belongs to. That isn't work anybody assigns you — it's what using a shared space costs, the same way you put a controller back before you use the TV again.</p>
+    <p>No counting, nobody keeping score on that second part. Some days one person handles more of the other's stuff. Some days it flips. If everybody does it, it balances. Nobody can vacuum just their own dust or wipe down half a mirror.</p>
+    <p style="margin-bottom:0">The other half of the deal: everything that isn't in the kids' thirty minutes is on the adult(s). That's the part of this page that's really for them.</p>
+  </div>
+</section>
+
+<footer>Family Operating System &middot; numbers approximate a real household's master maintenance inventory</footer>
+</div>
+
+<script>
+/* ---------------- find-it game ---------------- */
+var T = {
+  keys:{g:"\u{1F511}",n:"Keys"},   sock:{g:"\u{1F9E6}",n:"A sock"},
+  scis:{g:"✂️",n:"Scissors"}, tor:{g:"\u{1F526}",n:"Flashlight"},
+  head:{g:"\u{1F3A7}",n:"Headphones"},  cup:{g:"\u{1F964}",n:"A cup"}
+};
+var FIVE=[T.keys,T.sock,T.scis,T.tor,T.head];
+var SPOTS=[[19.5,71],[76,29],[47.5,18],[63.5,79],[31,41],[57,55]];
+var SPOTS_C=[[41,63]];
+
+var CLUTTER=("\u{1F4E6} \u{1FA80} \u{1F3B2} \u{1F4CE} \u{1F58D}️ \u{1F9C3} \u{1F34C} \u{1FA74} \u{1F455} \u{1F456} \u{1F9E4} \u{1FA81} \u{1F3C0} ⚽ \u{1F3B8} \u{1FA91} \u{1F4DA} \u{1F4C4} \u{1F5DE}️ \u{1FAA5} \u{1F9F4} \u{1F37D}️ \u{1F944} \u{1F374} \u{1F963} \u{1F9FB} \u{1FAA3} \u{1F9F9} \u{1F50C} \u{1F4A1} \u{1F50B} ⌨️ \u{1F5B1}️ \u{1F4F1} \u{1F3AE} \u{1F579}️ \u{1F9E9} \u{1FA86} \u{1F3A8} \u{1F58C}️ \u{1F4CF} \u{1F4D0} \u{1F9EE} \u{1FA9B} \u{1F527} \u{1F528} \u{1FA9A} \u{1F9F0} \u{1F97E} \u{1F45F} \u{1F392} \u{1F6F9} \u{1F6FC} ☂️ \u{1F576}️ \u{1F9E2} \u{1FA9E} \u{1F56F}️ \u{1FAB4} \u{1F36A} \u{1F968} \u{1F9F3} \u{1F5D1}️ \u{1F4CC} \u{1F9F8}").split(" ");
+var CALM=["\u{1FAB4}","\u{1FA91}","\u{1F4D6}","\u{1F9FA}","\u{1F4A1}","\u{1F5BC}️"];
+
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* single-player best times, kept in one localStorage bucket */
+var BEST={};
+try{ BEST=JSON.parse(localStorage.getItem("pile-costs-best")||"{}"); }catch(e){ BEST={}; }
+function saveBest(){ try{ localStorage.setItem("pile-costs-best",JSON.stringify(BEST)); }catch(e){} }
+function bestOf(k){ var v=BEST[k]; return (typeof v==="number")?v:null; }
+function noteBest(k,t){
+  var cur=bestOf(k);
+  var isNew = cur===null || t<cur;
+  if(isNew){ BEST[k]=t; saveBest(); }
+  return isNew;
+}
+function paintBest(){
+  [["best1","act1a"],["best2","act1b"]].forEach(function(p){
+    var el=document.getElementById(p[0]); if(!el) return;
+    var v=bestOf(p[1]);
+    el.textContent = v===null ? "" : ("best "+v.toFixed(1)+"s");
+  });
+  var summary=document.getElementById("bestOne");
+  if(summary){
+    var a=bestOf("act1a"), b=bestOf("act1b");
+    if(a===null && b===null) summary.textContent="";
+    else summary.textContent="Best: messy "+(a===null?"—":a.toFixed(1)+"s")
+      +" · clear "+(b===null?"—":b.toFixed(1)+"s");
+  }
+}
+document.getElementById("wipe").onclick=function(){
+  BEST={};
+  try{ localStorage.removeItem("pile-costs-best"); }catch(e){}
+  A1.log=[]; renderRuns(); paintBest(); buildAct1();
+  this.textContent="Cleared. Fresh start.";
+  this.classList.add("done");
+  var b=this; setTimeout(function(){ b.textContent="Clear best times"; b.classList.remove("done"); },2500);
+};
+
+/* ---- scene construction ---- */
+function scatter(sceneId, targets, spots, nClutter, seed, calm){
+  var sc=document.getElementById(sceneId);
+  sc.innerHTML=""; sc.classList.remove("locked");
+  var r=rng(seed), taken=spots.slice(), pool=calm?CALM:CLUTTER;
+  for(var i=0;i<nClutter;i++){
+    var x,y,ok,tries=0;
+    do{ ok=true; x=3+r()*94; y=6+r()*88; tries++;
+      for(var j=0;j<taken.length;j++){
+        var dx=taken[j][0]-x, dy=(taken[j][1]-y)*0.56;
+        if(dx*dx+dy*dy<22){ ok=false; break; }
+      }
+    }while(!ok&&tries<70);
+    if(!ok) continue;
+    taken.push([x,y]);
+    var e=document.createElement("span");
+    e.className="it"; e.textContent=pool[Math.floor(r()*pool.length)];
+    e.style.left=x+"%"; e.style.top=y+"%";
+    e.style.setProperty("--r",((r()*70)-35).toFixed(1)+"deg");
+    e.style.opacity=(0.82+r()*0.18).toFixed(2);
+    sc.appendChild(e);
+  }
+  targets.forEach(function(t,i){
+    var e=document.createElement("span");
+    e.className="it t"; e.textContent=t.g; e.dataset.k=t.n;
+    e.style.left=spots[i][0]+"%"; e.style.top=spots[i][1]+"%";
+    e.style.setProperty("--r","0deg");
+    sc.appendChild(e);
+  });
+}
+function veil(sceneId,msg){
+  var sc=document.getElementById(sceneId);
+  var old=sc.querySelector(".veil"); if(old) old.remove();
+  var v=document.createElement("div"); v.className="veil";
+  v.innerHTML="<p>"+msg+"</p>"; sc.appendChild(v);
+}
+function huntList(huntId,targets){
+  var hu=document.getElementById(huntId); hu.innerHTML="";
+  targets.forEach(function(t){
+    var c=document.createElement("span");
+    c.className="chip"; c.dataset.k=t.n;
+    c.innerHTML='<span class="g">'+t.g+'</span>'+t.n;
+    hu.appendChild(c);
+  });
+}
+
+/* ---- one timed hunt over a scene ---- */
+function hunt(cfg){
+  var sc=document.getElementById(cfg.scene), cl=document.getElementById(cfg.clock);
+  var hu=cfg.hunt?document.getElementById(cfg.hunt):null;
+  var v=sc.querySelector(".veil"); if(v) v.remove();
+  sc.classList.remove("locked");
+  var want=cfg.targets.map(function(t){return t.n;});
+  var got=0, t0=performance.now(), live=true;
+  var tick=setInterval(function(){ if(live) cl.textContent=((performance.now()-t0)/1000).toFixed(1)+"s"; },50);
+  sc.onclick=function(ev){
+    if(!live) return;
+    var el=ev.target, rect=sc.getBoundingClientRect();
+    var isT=el.classList.contains("t") && want.indexOf(el.dataset.k)>=0 && !el.classList.contains("found");
+    if(isT){
+      el.classList.add("found"); got++;
+      if(hu){ var chip=hu.querySelector('.chip[data-k="'+el.dataset.k+'"]'); if(chip) chip.classList.add("got"); }
+      if(cfg.pop){
+        var pp=document.createElement("div"); pp.className="pop";
+        pp.textContent="+"+got; pp.style.left=(ev.clientX-rect.left)+"px"; pp.style.top=(ev.clientY-rect.top)+"px";
+        sc.appendChild(pp); setTimeout(function(){pp.remove();},720);
+      }
+      if(cfg.onFind) cfg.onFind(got,(performance.now()-t0)/1000);
+      if(got===want.length && !cfg.endless){
+        live=false; clearInterval(tick);
+        var s=(performance.now()-t0)/1000;
+        cl.textContent=s.toFixed(1)+"s";
+        if(cfg.lock!==false) sc.classList.add("locked");
+        sc.onclick=null;
+        cfg.done(s);
+      }
+    } else if(!el.classList.contains("t")){
+      var m=document.createElement("div"); m.className="miss";
+      m.style.left=(ev.clientX-rect.left)+"px"; m.style.top=(ev.clientY-rect.top)+"px";
+      sc.appendChild(m); setTimeout(function(){m.remove();},520);
+    }
+  };
+  return { stop:function(){ if(!live) return 0; live=false; clearInterval(tick); sc.onclick=null;
+    var s=(performance.now()-t0)/1000; cl.textContent=s.toFixed(1)+"s"; sc.classList.add("locked"); return s; },
+    count:function(){return got;} };
+}
+
+/* =============== ACT 1: messy room, then clear room =============== */
+var A1={run:0, log:[]};
+
+/* five hiding places, fresh every play, spread out enough to stay findable */
+function pickSpots(r,n){
+  var out=[], guard=0;
+  while(out.length<n && guard<900){
+    guard++;
+    var x=10+r()*80, y=13+r()*74, ok=true;
+    for(var i=0;i<out.length;i++){
+      var dx=out[i][0]-x, dy=(out[i][1]-y)*0.56;
+      if(dx*dx+dy*dy<340){ ok=false; break; }   /* keep them well apart */
+    }
+    if(ok) out.push([x,y]);
+  }
+  while(out.length<n) out.push([15+out.length*17, 20+out.length*13]);
+  return out;
+}
+
+function buildAct1(){
+  A1.run++;
+  var seed=20260828+A1.run*7919;
+  /* both rounds use the SAME five spots... that is the controlled part of the test.
+     What changes between plays is where they are, so nobody can memorise the room. */
+  A1.spots=pickSpots(rng(seed),5);
+  scatter("scene1",FIVE,A1.spots,118,seed,false);
+  scatter("scene2",FIVE,A1.spots,6,seed+404,true);
+  huntList("hunt1",FIVE); huntList("hunt2",FIVE);
+  veil("scene1", A1.run===1 ? "Press start. Five things are hiding in here."
+                            : "New room, same five things. Press start.");
+  veil("scene2","Unlocks after round 1.");
+  ["clock1","clock2"].forEach(function(id){document.getElementById(id).textContent="0.0s";});
+  var g1=document.getElementById("go1"); g1.disabled=false; g1.textContent="Start";
+  var g2=document.getElementById("go2"); g2.disabled=true; g2.textContent="Finish round 1 first";
+  document.getElementById("res").classList.remove("on");
+  document.getElementById("bar1").style.width="0%";
+  document.getElementById("bar2").style.width="0%";
+  paintBest();
+}
+
+document.getElementById("go1").onclick=function(){
+  this.disabled=true; this.textContent="Running";
+  hunt({scene:"scene1",clock:"clock1",hunt:"hunt1",targets:FIVE,done:function(s){
+    A1.messy=s;
+    if(noteBest("act1a",s)) paintBest();
+    var b=document.getElementById("go2"); b.disabled=false; b.textContent="Start";
+    veil("scene2","Same five things, same spots. Ready?");
+    document.getElementById("s2").scrollIntoView({behavior:"smooth",block:"start"});
+  }});
+};
+
+document.getElementById("go2").onclick=function(){
+  this.disabled=true; this.textContent="Running";
+  hunt({scene:"scene2",clock:"clock2",hunt:"hunt2",targets:FIVE,done:function(s){
+    A1.clear=s; noteBest("act1b",s); paintBest();
+    var a=A1.messy,b=s,max=Math.max(a,b);
+    A1.log.push({run:A1.run,messy:a,clear:b});
+    document.getElementById("res").classList.add("on");
+    setTimeout(function(){
+      document.getElementById("bar1").style.width=(a/max*100)+"%";
+      document.getElementById("bar2").style.width=(b/max*100)+"%";
+    },60);
+    document.getElementById("val1").textContent=a.toFixed(1)+"s";
+    document.getElementById("val2").textContent=b.toFixed(1)+"s";
+    var v=document.getElementById("verdict");
+    if((a-b)>=0.4 && a/b>=1.25) v.textContent="The mess cost you "+(a-b).toFixed(1)+" extra seconds. That is "+(a/b).toFixed(1)+" times longer for the exact same five things.";
+    else if((a-b)>=0.4) v.textContent="The mess cost you "+(a-b).toFixed(1)+" extra seconds for the exact same five things. You are fast, and it still charged you.";
+    else v.textContent="Basically a tie that time. Play it again... the room moves every round, so it is a fresh test.";
+    renderRuns();
+  }});
+};
+
+document.getElementById("again1").onclick=function(){
+  buildAct1();
+  document.getElementById("go1").scrollIntoView({behavior:"smooth",block:"center"});
+};
+
+function renderRuns(){
+  var t=document.getElementById("runs");
+  if(!t) return;
+  if(!A1.log.length){ t.innerHTML=""; return; }
+  var h="<thead><tr><th>Play</th><th class='n'>Messy room</th><th class='n'>Clear room</th><th class='n'>What the mess cost</th></tr></thead><tbody>";
+  A1.log.forEach(function(x){
+    h+="<tr><td>"+x.run+"</td><td class='n'>"+x.messy.toFixed(1)+"s</td><td class='n'>"
+      +x.clear.toFixed(1)+"s</td><td class='n'><b>"+(x.messy-x.clear>0?"+":"")+(x.messy-x.clear).toFixed(1)+"s</b></td></tr>";
+  });
+  t.innerHTML=h+"</tbody>";
+}
+
+buildAct1();
+
+/* ---------------- the hours math ---------------- */
+/* minutes, straight off the master maintenance inventory */
+var LOAD=[
+ {k:"Every single day",       d:"Dishes in and out, hand wash, counters, stove, kitchen floor, kitchen reset, common area pickup, trash, recycling, the transport basket emptied before bed", mins:85, per:365, shared:true},
+ {k:"Your own, every day",    d:"Bed, bedroom pickup, your things put away, your dishes to the kitchen, bathroom reset after you, clothes out for tomorrow, your stuff out of the shared rooms, water bottle and backpack", mins:42, per:365, personal:true},
+ {k:"Laundry, ongoing",       d:"One laundry action a day: start it, flip it, fold it, put it away. By default this sits on the adult(s)", mins:20, per:365, dadonly:true},
+ {k:"Every week",             d:"Bathrooms, vacuum, mop, dust, kitchen deep clean, stovetop, microwave, fridge, curb and bins, mail, restock, yard, mow, car, Thursday reset, stairs and the utility path checked", mins:415, per:52, shared:true},
+ {k:"Your own, every week",   d:"Vacuum your bedroom, change and wash your bedding", mins:25, per:52, personal:true},
+ {k:"Every month",            d:"Fridge, oven, dishwasher cleaner, washer cleaner, garbage cans, ceiling fans, pantry, supplies, car interior, HVAC filter, drains, switches and handles", mins:245, per:12, shared:true},
+ {k:"Every quarter",          d:"Windows, tracks and screens, mattresses, upholstery, exterior walk around, smoke and CO test, gutters, seasonal yard", mins:185, per:4, shared:true},
+ {k:"Twice a year",           d:"Dryer vent, gutters cleaned, HVAC service, clothing swap, appliances, emergency supplies, donation run, outdoor furniture", mins:395, per:2, shared:true},
+ {k:"Once a year",            d:"Detector batteries, fire extinguisher, roof, plumbing, HVAC, dryer vent full, documents and insurance, home inventory, deep storage", mins:370, per:1, shared:true}
+];
+
+function totals(kidDays){
+  var shared=0, personal=0, dad=0;
+  LOAD.forEach(function(r){
+    if(r.shared) shared += r.mins*r.per;
+    if(r.dadonly) dad += r.mins*r.per;
+    if(r.personal){
+      if(r.per===365) personal += r.mins*(365 + kidDays*2);
+      else personal += r.mins*(52 + Math.round(kidDays/7)*2);
+    }
+  });
+  return {shared:shared, personal:personal, dadonly:dad, all:shared+personal+dad};
+}
+
+function rowHours(r,kidDays){
+  if(r.personal){
+    if(r.per===365) return r.mins*(365+kidDays*2)/60;
+    return r.mins*(52+Math.round(kidDays/7)*2)/60;
+  }
+  return r.mins*r.per/60;
+}
+
+var kidmin=document.getElementById("kidmin");
+var KID_DAYS=182;   /* every other week. Fixed, because the schedule is not a variable. */
+
+function render(){
+  var m=+kidmin.value, d=KID_DAYS;
+  document.getElementById("kidminOut").innerHTML=m+"<span>minutes</span>";
+
+  var T=totals(d);
+  var totalH=T.all/60;
+  var kidEach=m*d/60;
+  var kidsH=Math.min(kidEach*2, totalH);
+  var dadH=Math.max(totalH-kidsH,0);
+
+  document.getElementById("fTotal").innerHTML=Math.round(totalH).toLocaleString()+"<em>hours a year</em>";
+  document.getElementById("fKids").innerHTML=Math.round(kidsH).toLocaleString()+"<em>hours, the two of you</em>";
+  document.getElementById("fDad").innerHTML=Math.round(dadH).toLocaleString()+"<em>hours</em>";
+  document.getElementById("fWeek").innerHTML=(dadH/52).toFixed(1)+"<em>hours, every week</em>";
+
+  function pct(v){return (v/totalH*100);}
+  var pd=pct(dadH), pe=pct(kidEach), po=pct(kidEach);
+  document.getElementById("segDad").style.width=pd+"%";
+  document.getElementById("segEmmet").style.width=pe+"%";
+  document.getElementById("segOllie").style.width=po+"%";
+  document.getElementById("segDadT").textContent = pd>13 ? Math.round(pd)+"%" : "";
+  document.getElementById("segEmmetT").textContent = pe>7 ? Math.round(pe)+"%" : "";
+  document.getElementById("segOllieT").textContent = po>7 ? Math.round(po)+"%" : "";
+
+  var share=(kidsH/totalH*100);
+  var base=totals(0).all/60;
+  var footprint=Math.max(totalH-base,0);
+  var breakeven=d>0 ? (footprint*60/(2*d)) : 0;
+  var note=document.getElementById("shareNote");
+  if(m===0){
+    note.textContent="At zero, all "+Math.round(totalH).toLocaleString()+" hours land on the adult(s). That's "+(totalH/52).toFixed(1)+" hours a week on top of a job. It's the version of a house that never catches up.";
+  } else {
+    note.textContent=m+" minutes each, on the "+d+" days the kids are around, is "+Math.round(kidsH).toLocaleString()+" hours between them, or "+share.toFixed(0)+"% of the whole load. The honest version: three people living here instead of one adds about "+Math.round(footprint)+" hours a year to the house on its own. Break-even — where the kids cover exactly what they add — is right around "+Math.round(breakeven)+" minutes each. Everything past that is real weight coming off the adult(s).";
+  }
+
+  var tb=document.getElementById("loadRows"); tb.innerHTML="";
+  LOAD.slice().sort(function(a,b){return rowHours(b,d)-rowHours(a,d);}).forEach(function(r){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td><b>"+r.k+"</b></td><td style='color:var(--grey)'>"+r.d+"</td><td class='n'>"+Math.round(rowHours(r,d)).toLocaleString()+"</td>";
+    tb.appendChild(tr);
+  });
+}
+kidmin.oninput=render; render();
+
+</script>
+
+</body>
+</html>
