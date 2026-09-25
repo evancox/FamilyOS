@@ -259,6 +259,9 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: 70px repeat(7, 1fr);
+            /* First row (day headers) is 40px; every following row is 60px. */
+            /* JS keys off HEADER_PX = 40 for absolute-positioned lines. */
+            grid-template-rows: 40px;
             grid-auto-rows: 60px;
             gap: 0;
             min-width: 1100px;
