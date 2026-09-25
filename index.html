@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Operating System v5.3</title>
+    <title>Family Operating System v5.4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -457,6 +457,38 @@
             line-height: 1.4;
         }
 
+        /* Daily deal 30/30/30/30 progress — shown at the top of Day Notes. */
+        .deal-section {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed rgba(0,0,0,0.12);
+        }
+        .deal-heading {
+            font-size: 0.72em; font-weight: 700; color: #666;
+            text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;
+        }
+        .deal-row {
+            display: grid;
+            grid-template-columns: 62px 1fr 56px;
+            gap: 8px; align-items: center;
+            font-size: 0.78em;
+            margin-bottom: 4px;
+        }
+        .deal-label { font-weight: 600; color: #444; }
+        .deal-track {
+            height: 8px; background: #e0e0e0; border-radius: 4px;
+            overflow: hidden;
+        }
+        .deal-fill {
+            height: 100%; background: #f39c12;
+            transition: width 0.3s;
+        }
+        .deal-fill.full { background: #27ae60; }
+        .deal-val {
+            text-align: right; color: #666; font-variant-numeric: tabular-nums;
+        }
+        .deal-val.full { color: #27ae60; font-weight: 700; }
+
         /* Family templates — cards + edit modal rows. */
         .template-card {
             background: white; border-radius: 8px;
@@ -695,7 +727,7 @@
     <div class="container">
         <header>
             <div class="brand">
-                <h1>Family Operating System<span class="version">v5.3</span></h1>
+                <h1>Family Operating System<span class="version">v5.4</span></h1>
                 <p class="subtitle">A visible scaffold for the family week.</p>
             </div>
             <div class="header-actions">
@@ -736,6 +768,10 @@
 
                 <div class="panel" id="budgetPanel">
                     <h3>Day Notes</h3>
+                    <div class="deal-section" id="dealSection">
+                        <div class="deal-heading">Daily deal (30/30/30/30)</div>
+                        <div id="dealBar"></div>
+                    </div>
                     <div id="budgetBox"></div>
                     <div class="notice-list" id="noticeList"></div>
                 </div>
@@ -2409,6 +2445,60 @@
     }
 
     // =====================================================================
+    // DAILY DEAL 30/30/30/30 — bucket a block into House / Reading /
+    // Moving / Making. Used both for the sidebar progress bars and for
+    // the "no reading" style notices.
+    // =====================================================================
+
+    const HOUSE_ACTIVITY_NAMES = new Set(
+        ACTIVITIES.filter(a => a.section === 'House').map(a => a.name)
+    );
+    const MOVING_NAMES = new Set(['Moving', 'Sports', 'Outside Time']);
+    const MAKING_NAMES = new Set(['Making', 'Instrument']);
+
+    function bucketOf(name) {
+        if (!name) return null;
+        if (HOUSE_ACTIVITY_NAMES.has(name)) return 'House';
+        if (name.toLowerCase().includes('reading')) return 'Reading';
+        if (MOVING_NAMES.has(name)) return 'Moving';
+        if (MAKING_NAMES.has(name)) return 'Making';
+        return null;
+    }
+
+    function computeDealProgress(person, day) {
+        const totals = { House: 0, Reading: 0, Moving: 0, Making: 0 };
+        person.schedule.blocks.filter(b => b.day === day).forEach(b => {
+            const bucket = bucketOf(b.name);
+            if (bucket) totals[bucket] += b.duration;
+        });
+        return totals;
+    }
+
+    function renderDealBar() {
+        const el = document.getElementById('dealBar');
+        if (!el) return;
+        const p = currentPerson();
+        const totals = computeDealProgress(p, state.selectedDay);
+        el.innerHTML = '';
+        ['House', 'Reading', 'Moving', 'Making'].forEach(k => {
+            const target = 30;
+            const done = totals[k];
+            const pct = Math.min(100, Math.round(done / target * 100));
+            const isFull = done >= target;
+            const row = document.createElement('div');
+            row.className = 'deal-row';
+            row.innerHTML = `
+                <span class="deal-label">${k}</span>
+                <div class="deal-track">
+                    <div class="deal-fill ${isFull ? 'full' : ''}" style="width:${pct}%"></div>
+                </div>
+                <span class="deal-val ${isFull ? 'full' : ''}">${done}/${target}m</span>
+            `;
+            el.appendChild(row);
+        });
+    }
+
+    // =====================================================================
     // BUDGET + NOTICES
     // =====================================================================
 
@@ -2449,6 +2539,23 @@
         if (!hasReading) {
             notices.push({ level: 'soft', text: 'No reading placed today.' });
         }
+        // Homework-first support: on school days, flag when homework isn't
+        // placed and when screens are lined up before homework.
+        const hwBlocks = budget.userBlocks.filter(b =>
+            b.name.toLowerCase().includes('homework'));
+        const isSchoolDay = day >= 0 && day <= 4;
+        if (isSchoolDay && hwBlocks.length === 0) {
+            notices.push({ level: 'soft', text: 'No homework placed yet — schoolwork first.' });
+        }
+        if (hwBlocks.length > 0) {
+            const firstHw = Math.min.apply(null, hwBlocks.map(b => b.start));
+            const screensBeforeHw = budget.userBlocks.filter(b =>
+                b.type === 'screen-time' && b.start < firstHw);
+            if (screensBeforeHw.length > 0) {
+                notices.push({ level: 'soft',
+                    text: 'Screens are placed before homework — worth a look.' });
+            }
+        }
         // Movement-break notice: any single screen block ≥ 45m is worth a stretch.
         budget.userBlocks
             .filter(b => b.type === 'screen-time' && b.duration >= 45)
@@ -2482,6 +2589,7 @@
     }
 
     function renderBudget() {
+        renderDealBar();
         const p = currentPerson();
         const day = state.selectedDay;
         const budget = computeDayBudget(p, day);
