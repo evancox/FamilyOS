@@ -13,9 +13,6 @@
   [hidden]{display:none!important;}
 </style>
 <title>What the Pile Costs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <style>
 :root{
@@ -33,13 +30,16 @@
   --green-wash:#E9F0E4;
   --floor:#EDEAE4;
   --floor-line:#E2DED6;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Mono", monospace;
 }
 *{box-sizing:border-box;}
 body{
   margin:0;
   background:var(--ground);
   color:var(--ink);
-  font-family:"Karla","Helvetica Neue",Arial,sans-serif;
+  font-family:var(--sans);
   font-size:17px;
   line-height:1.55;
   -webkit-font-smoothing:antialiased;
@@ -49,11 +49,11 @@ body{
 /* ---------- masthead ---------- */
 header.mast{padding:64px 0 30px;border-bottom:2px solid var(--ink);}
 .eyebrow{
-  font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;
+  font-family:var(--heading);font-weight:700;font-size:12px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin:0 0 14px;
 }
 h1{
-  font-family:"Archivo",sans-serif;font-weight:800;
+  font-family:var(--heading);font-weight:800;
   font-size:clamp(38px,6.2vw,66px);line-height:.98;letter-spacing:-.022em;
   margin:0;text-wrap:balance;
 }
@@ -66,11 +66,11 @@ h1{
 section{padding:56px 0 0;}
 .sechead{display:flex;align-items:baseline;gap:16px;margin:0 0 8px;}
 .secnum{
-  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;
+  font-family:var(--mono);font-size:13px;font-weight:600;
   color:var(--hard);letter-spacing:.06em;padding-top:6px;
 }
 h2{
-  font-family:"Archivo",sans-serif;font-weight:700;
+  font-family:var(--heading);font-weight:700;
   font-size:clamp(26px,3.6vw,36px);line-height:1.08;letter-spacing:-.015em;margin:0;
   text-wrap:balance;
 }
@@ -83,17 +83,17 @@ h2{
 }
 .gbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;}
 .roundtag{
-  font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;
+  font-family:var(--heading);font-weight:700;font-size:12px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--card);background:var(--ink);
   padding:5px 10px;border-radius:2px;
 }
 .clock{
-  font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:500;
+  font-family:var(--mono);font-size:30px;font-weight:500;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em;min-width:5.2ch;
 }
 .gbar .spacer{flex:1;}
 button{
-  font-family:"Archivo",sans-serif;font-weight:700;font-size:14px;letter-spacing:.03em;
+  font-family:var(--heading);font-weight:700;font-size:14px;letter-spacing:.03em;
   background:var(--blue);color:#fff;border:none;border-radius:2px;
   padding:11px 20px;cursor:pointer;transition:background .15s;
 }
@@ -142,19 +142,19 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
   background:rgba(244,246,247,.9);text-align:center;padding:24px;
 }
 .veil p{
-  font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(17px,2.6vw,24px);
+  font-family:var(--heading);font-weight:700;font-size:clamp(17px,2.6vw,24px);
   max-width:26ch;margin:0;line-height:1.25;
 }
 
 /* ---------- players ---------- */
 .who{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:34px 0 0;}
-.wholab{font-family:"Archivo",sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-right:4px;}
+.wholab{font-family:var(--heading);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-right:4px;}
 .pchip{background:transparent;color:var(--grey);border:1.5px solid var(--rule);padding:7px 16px;font-size:14px;}
 .pchip:hover{background:var(--blue-wash);color:var(--blue);}
 .pchip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
 .pchip.on:hover{background:var(--ink);color:#fff;}
 .best{
-  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--green);
+  font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);
   background:var(--green-wash);border:1px solid var(--green);border-radius:2px;padding:3px 9px;
   font-variant-numeric:tabular-nums;
 }
@@ -167,14 +167,14 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
 .result.on{display:block;}
 .bars{display:flex;flex-direction:column;gap:14px;margin:4px 0 22px;}
 .brow{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;}
-.blab{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);}
+.blab{font-family:var(--heading);font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);}
 .btrack{position:relative;height:36px;background:#EAEEF1;border-radius:2px;overflow:hidden;}
 .bfill{height:100%;width:0;transition:width .9s cubic-bezier(.2,.7,.3,1);}
 .bfill.mess{background:var(--amber);}
 .bfill.clear{background:var(--green);}
 .bval{
   position:absolute;top:0;height:36px;display:flex;align-items:center;padding-left:12px;
-  font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;color:#fff;
+  font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;
   font-variant-numeric:tabular-nums;
 }
 .punch{
@@ -184,7 +184,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
 .punch p{margin:0 0 10px;}
 .punch p:last-child{margin:0;}
 .punch b{font-weight:700;}
-.big{font-family:"Archivo",sans-serif;font-weight:800;font-size:clamp(22px,3.4vw,30px);line-height:1.1;letter-spacing:-.015em;}
+.big{font-family:var(--heading);font-weight:800;font-size:clamp(22px,3.4vw,30px);line-height:1.1;letter-spacing:-.015em;}
 
 /* ---------- math ---------- */
 .panel{
@@ -192,11 +192,11 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
 }
 .dials{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px;margin-bottom:30px;}
 .dial label{
-  display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:12px;
+  display:block;font-family:var(--heading);font-weight:600;font-size:12px;
   letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:9px;
 }
 .dialnum{
-  font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;
+  font-family:var(--mono);font-size:26px;font-weight:600;
   font-variant-numeric:tabular-nums;display:block;margin-bottom:6px;
 }
 .dialnum span{font-size:14px;color:var(--grey);font-weight:400;margin-left:5px;}
@@ -209,7 +209,7 @@ input[type=range]:focus-visible{outline:3px solid var(--amber);outline-offset:3p
 .stackbar{display:flex;height:54px;border-radius:2px;overflow:hidden;border:1px solid var(--rule);}
 .seg{display:flex;align-items:center;justify-content:center;transition:width .5s ease;overflow:hidden;}
 .seg span{
-  font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;
+  font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;
   white-space:nowrap;font-variant-numeric:tabular-nums;
 }
 .seg.dad{background:var(--blue);}
@@ -220,19 +220,19 @@ input[type=range]:focus-visible{outline:3px solid var(--amber);outline-offset:3p
 
 .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px;margin-top:28px;}
 .fig{background:var(--card);padding:18px 20px;}
-.fig dt{font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:7px;}
-.fig dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
-.fig dd em{font-style:normal;font-size:13px;color:var(--grey);font-family:"Karla",sans-serif;font-weight:400;margin-left:6px;}
+.fig dt{font-family:var(--heading);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:7px;}
+.fig dd{margin:0;font-family:var(--mono);font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.fig dd em{font-style:normal;font-size:13px;color:var(--grey);font-family:var(--sans);font-weight:400;margin-left:6px;}
 .fig.hero dd{color:var(--blue);}
 
 table.load{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px;}
 table.load th{
-  text-align:left;font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;
+  text-align:left;font-family:var(--heading);font-weight:600;font-size:11px;
   letter-spacing:.1em;text-transform:uppercase;color:var(--grey);
   border-bottom:1.5px solid var(--ink);padding:0 10px 8px 0;
 }
 table.load td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top;}
-table.load td.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:0;}
+table.load td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:0;}
 .tblwrap{overflow-x:auto;}
 
 .note{font-size:15px;color:var(--grey);margin-top:18px;max-width:66ch;}
@@ -466,6 +466,10 @@ function scatter(sceneId, targets, spots, nClutter, seed, calm){
     e.className="it t"; e.textContent=t.g; e.dataset.k=t.n;
     e.style.left=spots[i][0]+"%"; e.style.top=spots[i][1]+"%";
     e.style.setProperty("--r","0deg");
+    /* Keyboard-operable: targets are focusable buttons with a name. */
+    e.setAttribute("tabindex","0");
+    e.setAttribute("role","button");
+    e.setAttribute("aria-label",t.n);
     sc.appendChild(e);
   });
 }
@@ -494,40 +498,70 @@ function hunt(cfg){
   var want=cfg.targets.map(function(t){return t.n;});
   var got=0, t0=performance.now(), live=true;
   var tick=setInterval(function(){ if(live) cl.textContent=((performance.now()-t0)/1000).toFixed(1)+"s"; },50);
+  function cleanup(){ sc.onclick=null; sc.onkeydown=null; }
+  function tryHit(el, ev){
+    if(!live) return false;
+    if(!el.classList.contains("t")) return false;
+    if(want.indexOf(el.dataset.k)<0) return false;
+    if(el.classList.contains("found")) return false;
+    el.classList.add("found"); got++;
+    if(hu){ var chip=hu.querySelector('.chip[data-k="'+el.dataset.k+'"]'); if(chip) chip.classList.add("got"); }
+    if(cfg.pop && ev){
+      var rect=sc.getBoundingClientRect();
+      var pp=document.createElement("div"); pp.className="pop";
+      pp.textContent="+"+got; pp.style.left=(ev.clientX-rect.left)+"px"; pp.style.top=(ev.clientY-rect.top)+"px";
+      sc.appendChild(pp); setTimeout(function(){pp.remove();},720);
+    }
+    if(cfg.onFind) cfg.onFind(got,(performance.now()-t0)/1000);
+    if(got===want.length && !cfg.endless){
+      live=false; clearInterval(tick);
+      var s=(performance.now()-t0)/1000;
+      cl.textContent=s.toFixed(1)+"s";
+      if(cfg.lock!==false) sc.classList.add("locked");
+      cleanup();
+      cfg.done(s);
+    }
+    return true;
+  }
   sc.onclick=function(ev){
     if(!live) return;
-    var el=ev.target, rect=sc.getBoundingClientRect();
-    var isT=el.classList.contains("t") && want.indexOf(el.dataset.k)>=0 && !el.classList.contains("found");
-    if(isT){
-      el.classList.add("found"); got++;
-      if(hu){ var chip=hu.querySelector('.chip[data-k="'+el.dataset.k+'"]'); if(chip) chip.classList.add("got"); }
-      if(cfg.pop){
-        var pp=document.createElement("div"); pp.className="pop";
-        pp.textContent="+"+got; pp.style.left=(ev.clientX-rect.left)+"px"; pp.style.top=(ev.clientY-rect.top)+"px";
-        sc.appendChild(pp); setTimeout(function(){pp.remove();},720);
-      }
-      if(cfg.onFind) cfg.onFind(got,(performance.now()-t0)/1000);
-      if(got===want.length && !cfg.endless){
-        live=false; clearInterval(tick);
-        var s=(performance.now()-t0)/1000;
-        cl.textContent=s.toFixed(1)+"s";
-        if(cfg.lock!==false) sc.classList.add("locked");
-        sc.onclick=null;
-        cfg.done(s);
-      }
-    } else if(!el.classList.contains("t")){
-      var m=document.createElement("div"); m.className="miss";
-      m.style.left=(ev.clientX-rect.left)+"px"; m.style.top=(ev.clientY-rect.top)+"px";
-      sc.appendChild(m); setTimeout(function(){m.remove();},520);
-    }
+    var el=ev.target;
+    if(el.classList.contains("t")){ tryHit(el, ev); return; }
+    /* Missed click on empty scene: ping the amber ring where it landed. */
+    var rect=sc.getBoundingClientRect();
+    var m=document.createElement("div"); m.className="miss";
+    m.style.left=(ev.clientX-rect.left)+"px"; m.style.top=(ev.clientY-rect.top)+"px";
+    sc.appendChild(m); setTimeout(function(){m.remove();},520);
   };
-  return { stop:function(){ if(!live) return 0; live=false; clearInterval(tick); sc.onclick=null;
-    var s=(performance.now()-t0)/1000; cl.textContent=s.toFixed(1)+"s"; sc.classList.add("locked"); return s; },
-    count:function(){return got;} };
+  sc.onkeydown=function(ev){
+    if(!live) return;
+    if(ev.key!=="Enter" && ev.key!==" ") return;
+    if(!ev.target || !ev.target.classList.contains("t")) return;
+    ev.preventDefault();
+    tryHit(ev.target, null);
+  };
+  return {
+    stop:function(){
+      if(!live) return 0;
+      live=false; clearInterval(tick);
+      cleanup();
+      var s=(performance.now()-t0)/1000;
+      cl.textContent=s.toFixed(1)+"s";
+      sc.classList.add("locked");
+      return s;
+    },
+    count:function(){return got;}
+  };
 }
 
 /* =============== ACT 1: messy room, then clear room =============== */
-var A1={run:0, log:[]};
+/* hunt1/hunt2 hold the active hunt controllers so wipe (and buildAct1)
+   can cancel a running round instead of leaving its interval alive. */
+var A1={run:0, log:[], hunt1:null, hunt2:null};
+function stopActiveHunts(){
+  if(A1.hunt1){ try{ A1.hunt1.stop(); }catch(e){} A1.hunt1=null; }
+  if(A1.hunt2){ try{ A1.hunt2.stop(); }catch(e){} A1.hunt2=null; }
+}
 
 /* five hiding places, fresh every play, spread out enough to stay findable */
 function pickSpots(r,n){
@@ -546,6 +580,7 @@ function pickSpots(r,n){
 }
 
 function buildAct1(){
+  stopActiveHunts();
   A1.run++;
   var seed=20260828+A1.run*7919;
   /* both rounds use the SAME five spots... that is the controlled part of the test.
@@ -568,7 +603,8 @@ function buildAct1(){
 
 document.getElementById("go1").onclick=function(){
   this.disabled=true; this.textContent="Running";
-  hunt({scene:"scene1",clock:"clock1",hunt:"hunt1",targets:FIVE,done:function(s){
+  A1.hunt1 = hunt({scene:"scene1",clock:"clock1",hunt:"hunt1",targets:FIVE,done:function(s){
+    A1.hunt1 = null;
     A1.messy=s;
     if(noteBest("act1a",s)) paintBest();
     var b=document.getElementById("go2"); b.disabled=false; b.textContent="Start";
@@ -579,7 +615,8 @@ document.getElementById("go1").onclick=function(){
 
 document.getElementById("go2").onclick=function(){
   this.disabled=true; this.textContent="Running";
-  hunt({scene:"scene2",clock:"clock2",hunt:"hunt2",targets:FIVE,done:function(s){
+  A1.hunt2 = hunt({scene:"scene2",clock:"clock2",hunt:"hunt2",targets:FIVE,done:function(s){
+    A1.hunt2 = null;
     A1.clear=s; noteBest("act1b",s); paintBest();
     var a=A1.messy,b=s,max=Math.max(a,b);
     A1.log.push({run:A1.run,messy:a,clear:b});
